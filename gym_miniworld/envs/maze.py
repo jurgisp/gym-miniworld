@@ -18,6 +18,7 @@ class Maze(MiniWorldEnv):
         gap_size=0.25,
         max_episode_steps=None,
         agent_start_topleft=False,
+        no_goal=False,
         **kwargs
     ):
         self.num_rows = num_rows
@@ -25,6 +26,7 @@ class Maze(MiniWorldEnv):
         self.room_size = room_size
         self.gap_size = gap_size
         self.agent_start_topleft = agent_start_topleft
+        self.no_goal = no_goal
 
         super().__init__(
             max_episode_steps = max_episode_steps or num_rows * num_cols * 24,
@@ -108,12 +110,13 @@ class Maze(MiniWorldEnv):
         else:
             self.place_agent()
 
-        self.box = self.place_entity(Box(color='red'))
+        if not self.no_goal:
+            self.box = self.place_entity(Box(color='red'))
 
     def step(self, action):
         obs, reward, done, info = super().step(action)
 
-        if self.near(self.box):
+        if not self.no_goal and self.near(self.box):
             reward += self._reward()
             done = True
 
@@ -152,7 +155,7 @@ class MazeS8Fast(Maze):
         params.set('turn_step', turn_step)
         super().__init__(num_rows=size, num_cols=size, params=params, max_episode_steps=max_steps)
 
-class MazeS5Grid(Maze):
+class MazeS5GridN(Maze):
     def __init__(self, size=5, max_steps=300):
         params = DEFAULT_PARAMS.no_random()
         params.set('forward_step', 1.0)
@@ -164,5 +167,6 @@ class MazeS5Grid(Maze):
             max_episode_steps=max_steps,
             room_size=2,
             gap_size=2,
-            agent_start_topleft=True
+            agent_start_topleft=True,
+            no_goal=True
             )
