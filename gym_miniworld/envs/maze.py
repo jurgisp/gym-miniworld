@@ -15,13 +15,16 @@ class Maze(MiniWorldEnv):
         num_rows=8,
         num_cols=8,
         room_size=3,
+        gap_size=0.25,
         max_episode_steps=None,
+        agent_start_topleft=False,
         **kwargs
     ):
         self.num_rows = num_rows
         self.num_cols = num_cols
         self.room_size = room_size
-        self.gap_size = 0.25
+        self.gap_size = gap_size
+        self.agent_start_topleft = agent_start_topleft
 
         super().__init__(
             max_episode_steps = max_episode_steps or num_rows * num_cols * 24,
@@ -99,9 +102,13 @@ class Maze(MiniWorldEnv):
         # Generate the maze starting from the top-left corner
         visit(0, 0)
 
-        self.box = self.place_entity(Box(color='red'))
+        if self.agent_start_topleft:
+            pos = self.room_size/2
+            self.place_agent(dir=0, min_x=pos, max_x=pos, min_z=pos, max_z=pos, add_radius=False)
+        else:
+            self.place_agent()
 
-        self.place_agent()
+        self.box = self.place_entity(Box(color='red'))
 
     def step(self, action):
         obs, reward, done, info = super().step(action)
@@ -137,3 +144,25 @@ class MazeS3Fast(Maze):
             max_episode_steps=max_steps,
             domain_rand=False
         )
+
+class MazeS8Fast(Maze):
+    def __init__(self, size=8, forward_step=0.7, turn_step=45, max_steps=300):
+        params = DEFAULT_PARAMS.no_random()
+        params.set('forward_step', forward_step)
+        params.set('turn_step', turn_step)
+        super().__init__(num_rows=size, num_cols=size, params=params, max_episode_steps=max_steps)
+
+class MazeS5Grid(Maze):
+    def __init__(self, size=5, max_steps=300):
+        params = DEFAULT_PARAMS.no_random()
+        params.set('forward_step', 1.0)
+        params.set('turn_step', 90)
+        super().__init__(
+            num_rows=size, 
+            num_cols=size, 
+            params=params, 
+            max_episode_steps=max_steps,
+            room_size=2,
+            gap_size=2,
+            agent_start_topleft=True
+            )

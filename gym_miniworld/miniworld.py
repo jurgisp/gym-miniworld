@@ -851,7 +851,8 @@ class MiniWorldEnv(gym.Env):
         min_x=None,
         max_x=None,
         min_z=None,
-        max_z=None
+        max_z=None,
+        add_radius=True,
     ):
         """
         Place an entity/object in the world.
@@ -882,10 +883,16 @@ class MiniWorldEnv(gym.Env):
             hx = r.max_x if max_x == None else max_x
             lz = r.min_z if min_z == None else min_z
             hz = r.max_z if max_z == None else max_z
-            pos = self.rand.float(
-                low =[lx - ent.radius, 0, lz - ent.radius],
-                high=[hx + ent.radius, 0, hz + ent.radius]
-            )
+            if add_radius:
+                pos = self.rand.float(
+                    low =[lx - ent.radius, 0, lz - ent.radius],
+                    high=[hx + ent.radius, 0, hz + ent.radius]
+                )
+            else:
+                pos = self.rand.float(
+                    low =[lx, 0, lz],
+                    high=[hx, 0, hz]
+                )
 
             # Make sure the position is within the room's outline
             if not r.point_inside(pos):
@@ -913,7 +920,8 @@ class MiniWorldEnv(gym.Env):
         min_x=None,
         max_x=None,
         min_z=None,
-        max_z=None
+        max_z=None,
+        add_radius=True,
     ):
         """
         Place the agent in the environment at a random position
@@ -927,7 +935,8 @@ class MiniWorldEnv(gym.Env):
             min_x=min_x,
             max_x=max_x,
             min_z=min_z,
-            max_z=max_z
+            max_z=max_z,
+            add_radius=add_radius
         )
 
     def intersect(self, ent, pos, radius):
