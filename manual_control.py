@@ -65,7 +65,7 @@ def on_key_press(symbol, modifiers):
 
     if symbol == key.ESCAPE:
         env.close()
-        sys.exit(0)
+        pyglet.app.exit()
 
     if symbol == key.UP:
         step(env.actions.move_forward)
