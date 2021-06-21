@@ -618,6 +618,8 @@ class MiniWorldEnv(gym.Env):
 
         if self.intersect(self.agent, next_pos, self.agent.radius):
             return False
+        if self.intersect(self.agent, (self.agent.pos+next_pos)/2, self.agent.radius):  # Check midpoint for large steps
+            return False
 
         carrying = self.agent.carrying
         if carrying:

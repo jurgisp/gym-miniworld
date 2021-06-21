@@ -155,10 +155,22 @@ class MazeS8Fast(Maze):
         params.set('turn_step', turn_step)
         super().__init__(num_rows=size, num_cols=size, params=params, max_episode_steps=max_steps)
 
+class MazeS5(Maze):
+    def __init__(self, size=5, max_steps=300):
+        params = DEFAULT_PARAMS.no_random()
+        super().__init__(
+            num_rows=size, 
+            num_cols=size, 
+            params=params, 
+            max_episode_steps=max_steps,
+            room_size=2,
+            gap_size=2,
+            )
+
 class MazeS5GridN(Maze):
     def __init__(self, size=5, max_steps=300):
         params = DEFAULT_PARAMS.no_random()
-        params.set('forward_step', 1.0)
+        params.set('forward_step', 2)
         params.set('turn_step', 90)
         super().__init__(
             num_rows=size, 
