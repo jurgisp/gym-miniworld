@@ -13,21 +13,24 @@ from pyglet.window import key
 from pyglet import clock
 import numpy as np
 import gym
-import gym_miniworld
+from gym_miniworld import wrappers
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env-name', default='MiniWorld-Hallway-v0')
 parser.add_argument('--domain-rand', action='store_true', help='enable domain randomization')
 parser.add_argument('--no-time-limit', action='store_true', help='ignore time step limits')
 parser.add_argument('--top_view', action='store_true', help='show the top view instead of the agent view')
+parser.add_argument('--map_wrapper', action='store_true', help='use map wrapper')
 args = parser.parse_args()
 
 env = gym.make(args.env_name)
-
 if args.no_time_limit:
     env.max_episode_steps = math.inf
 if args.domain_rand:
     env.domain_rand = True
+
+if args.map_wrapper:
+    env = wrappers.MapWrapper(env)
 
 view_mode = 'top' if args.top_view else 'agent'
 
@@ -40,6 +43,8 @@ def step(action):
     print('step {}/{}: {}'.format(env.step_count+1, env.max_episode_steps, env.actions(action).name))
 
     obs, reward, done, info = env.step(action)
+    if isinstance(obs, dict):
+        print({k: v.shape for k, v in obs.items()})
 
     if reward > 0:
         print('reward={:.2f}'.format(reward))
