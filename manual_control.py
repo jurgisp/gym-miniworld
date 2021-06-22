@@ -13,7 +13,7 @@ from pyglet.window import key
 from pyglet import clock
 import numpy as np
 import gym
-from gym_miniworld import wrappers
+from gym_miniworld.wrappers import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env-name', default='MiniWorld-Hallway-v0')
@@ -30,7 +30,9 @@ if args.domain_rand:
     env.domain_rand = True
 
 if args.map_wrapper:
-    env = wrappers.MapWrapper(env)
+    env = DictWrapper(env)
+    env = MapWrapper(env)
+    env = AgentPosWrapper(env)
 
 view_mode = 'top' if args.top_view else 'agent'
 
