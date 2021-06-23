@@ -168,7 +168,7 @@ class MazeS5(Maze):
             )
 
 class MazeS5GridN(Maze):
-    def __init__(self, size=5, max_steps=300):
+    def __init__(self, size=5, max_steps=500):
         params = DEFAULT_PARAMS.no_random()
         params.set('forward_step', 2)
         params.set('turn_step', 90)
@@ -180,5 +180,7 @@ class MazeS5GridN(Maze):
             room_size=2,
             gap_size=2,
             agent_start_topleft=True,
-            no_goal=True
+            no_goal=True,
+            obs_width=64,
+            obs_height=64,
             )
