@@ -130,42 +130,23 @@ class MazeS3(Maze):
     def __init__(self):
         super().__init__(num_rows=3, num_cols=3)
 
-class MazeS3Fast(Maze):
-    def __init__(self, forward_step=0.7, turn_step=45):
-
-        # Parameters for larger movement steps, fast stepping
+class MazeS5N(Maze):
+    def __init__(self, size=5, max_steps=2000):
         params = DEFAULT_PARAMS.no_random()
-        params.set('forward_step', forward_step)
-        params.set('turn_step', turn_step)
-
-        max_steps = 300
-
-        super().__init__(
-            num_rows=3,
-            num_cols=3,
-            params=params,
-            max_episode_steps=max_steps,
-            domain_rand=False
-        )
-
-class MazeS8Fast(Maze):
-    def __init__(self, size=8, forward_step=0.7, turn_step=45, max_steps=300):
-        params = DEFAULT_PARAMS.no_random()
-        params.set('forward_step', forward_step)
-        params.set('turn_step', turn_step)
-        super().__init__(num_rows=size, num_cols=size, params=params, max_episode_steps=max_steps)
-
-class MazeS5(Maze):
-    def __init__(self, size=5, max_steps=300):
-        params = DEFAULT_PARAMS.no_random()
+        params.set('forward_step', 1)
+        params.set('turn_step', 25)
         super().__init__(
             num_rows=size, 
             num_cols=size, 
             params=params, 
             max_episode_steps=max_steps,
-            room_size=2,
-            gap_size=2,
-            )
+            room_size=3,
+            gap_size=3,
+            # agent_start _topleft=True,
+            no_goal=True,
+            obs_width=64,
+            obs_height=64,
+        )
 
 class MazeS5GridN(Maze):
     def __init__(self, size=5, max_steps=500):

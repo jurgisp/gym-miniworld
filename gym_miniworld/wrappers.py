@@ -72,7 +72,7 @@ class MapWrapper(gym.ObservationWrapper):
     def observation(self, obs):
         obs['map'] = self.get_map()
         obs['map_agent'] = self.get_map(with_agent=True)
-        obs['map_centered'] = self.get_map(centered=True)
+        # obs['map_centered'] = self.get_map(centered=True)
         # print(obs['map_agent'].T)
         return obs
 
@@ -102,8 +102,8 @@ class MapWrapper(gym.ObservationWrapper):
             iz = round((room.min_z - env.min_z) / s)
             map[ix, iz] = 1  # empty
 
-        agent_ix = int(np.floor((env.agent.pos[0] - env.min_x) / 2))
-        agent_iz = int(np.floor((env.agent.pos[2] - env.min_x) / 2))
+        agent_ix = int(np.floor((env.agent.pos[0] - env.min_x) / s))
+        agent_iz = int(np.floor((env.agent.pos[2] - env.min_x) / s))
         agent_dir = round(env.agent.dir / (np.pi / 2)) % 4  # counter-clockwise
         if with_agent:
             minigrid_agent_dir = (8 - agent_dir) % 4  # MiniGrid's agent_dir goes in clockwise direction
