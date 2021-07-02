@@ -97,19 +97,27 @@ class MapWrapper(gym.ObservationWrapper):
 
         map = np.zeros((n, n), dtype=int)
         map[:, :] = 2  # wall
+
         for room in env.rooms:
             ix = round((room.min_x - env.min_x) / s)
             iz = round((room.min_z - env.min_z) / s)
             map[ix, iz] = 1  # empty
 
-        agent_ix = int(np.floor((env.agent.pos[0] - env.min_x) / s))
-        agent_iz = int(np.floor((env.agent.pos[2] - env.min_x) / s))
-        agent_dir = round(env.agent.dir / (np.pi / 2)) % 4  # counter-clockwise
-        if with_agent:
-            minigrid_agent_dir = (8 - agent_dir) % 4  # MiniGrid's agent_dir goes in clockwise direction
-            map[agent_ix, agent_iz] = 4 + minigrid_agent_dir
+        for ent in env.entities:
+            ix = int(np.floor((ent.pos[0] - env.min_x) / s))
+            iz = int(np.floor((ent.pos[2] - env.min_x) / s))
+            if ent == env.agent:
+                if with_agent:
+                    dir = round(ent.dir / (np.pi / 2)) % 4  # counter-clockwise
+                    minigrid_agent_dir = (8 - dir) % 4  # MiniGrid's agent_dir goes in clockwise direction
+                    map[ix, iz] = 4 + minigrid_agent_dir
+            else:
+                map[ix, iz] = 3  # assume goal
 
         if centered:
+            agent_ix = int(np.floor((env.agent.pos[0] - env.min_x) / s))
+            agent_iz = int(np.floor((env.agent.pos[2] - env.min_x) / s))
+            agent_dir = round(env.agent.dir / (np.pi / 2)) % 4  # counter-clockwise
             # Bigger [2n-1;2n-1] map, where agent is positioned in the center at [n-1;n-1]
             nc = 2 * n - 1
             mapc = np.zeros((nc, nc), dtype=int)

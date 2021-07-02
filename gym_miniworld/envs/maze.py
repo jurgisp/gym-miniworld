@@ -19,6 +19,7 @@ class Maze(MiniWorldEnv):
         max_episode_steps=None,
         agent_start_topleft=False,
         no_goal=False,
+        n_apples=0,
         **kwargs
     ):
         self.num_rows = num_rows
@@ -27,6 +28,7 @@ class Maze(MiniWorldEnv):
         self.gap_size = gap_size
         self.agent_start_topleft = agent_start_topleft
         self.no_goal = no_goal
+        self.n_apples = n_apples
 
         super().__init__(
             max_episode_steps = max_episode_steps or num_rows * num_cols * 24,
@@ -111,14 +113,28 @@ class Maze(MiniWorldEnv):
             self.place_agent()
 
         if not self.no_goal:
-            self.box = self.place_entity(Box(color='red'))
+            self.goal_box = self.place_entity(Box(color='red'))
+        else:
+            self.goal_box = None
+
+        self.apples = []
+        for _ in range(self.n_apples):
+            self.apples.append(self.place_entity(Box(color='green')))
 
     def step(self, action):
         obs, reward, done, info = super().step(action)
 
-        if not self.no_goal and self.near(self.box):
+        if self.goal_box and self.near(self.goal_box):
             reward += self._reward()
             done = True
+
+        for apple in self.apples[:]:
+            if self.near(apple):
+                self.entities.remove(apple)
+                self.apples.remove(apple)
+                reward += 1.0  # Reward for each
+                if self.n_apples > 0 and len(self.apples) == 0:
+                    done = True  # All collected
 
         return obs, reward, done, info
 
@@ -129,6 +145,26 @@ class MazeS2(Maze):
 class MazeS3(Maze):
     def __init__(self):
         super().__init__(num_rows=3, num_cols=3)
+
+
+class MazeS5A5(Maze):
+    def __init__(self, size=5, max_steps=2000):
+        params = DEFAULT_PARAMS.no_random()
+        params.set('forward_step', 1)
+        params.set('turn_step', 25)
+        super().__init__(
+            num_rows=size, 
+            num_cols=size, 
+            params=params, 
+            max_episode_steps=max_steps,
+            room_size=3,
+            gap_size=3,
+            no_goal=True,
+            n_apples=5,
+            obs_width=64,
+            obs_height=64,
+        )
+
 
 class MazeS5N(Maze):
     def __init__(self, size=5, max_steps=2000):
