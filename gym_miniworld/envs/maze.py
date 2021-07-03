@@ -147,7 +147,7 @@ class MazeS3(Maze):
         super().__init__(num_rows=3, num_cols=3)
 
 
-class MazeS5A5(Maze):
+class MazeS5A4(Maze):
     def __init__(self, size=5, max_steps=2000):
         params = DEFAULT_PARAMS.no_random()
         params.set('forward_step', 1)
@@ -160,7 +160,7 @@ class MazeS5A5(Maze):
             room_size=3,
             gap_size=3,
             no_goal=True,
-            n_apples=5,
+            n_apples=4,
             obs_width=64,
             obs_height=64,
         )
