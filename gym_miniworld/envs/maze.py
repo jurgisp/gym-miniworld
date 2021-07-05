@@ -20,6 +20,7 @@ class Maze(MiniWorldEnv):
         agent_start_topleft=False,
         no_goal=False,
         n_apples=0,
+        no_texture=False,
         **kwargs
     ):
         self.num_rows = num_rows
@@ -29,6 +30,7 @@ class Maze(MiniWorldEnv):
         self.agent_start_topleft = agent_start_topleft
         self.no_goal = no_goal
         self.n_apples = n_apples
+        self.no_texture = no_texture
 
         super().__init__(
             max_episode_steps = max_episode_steps or num_rows * num_cols * 24,
@@ -59,7 +61,7 @@ class Maze(MiniWorldEnv):
                     max_x=max_x,
                     min_z=min_z,
                     max_z=max_z,
-                    wall_tex='brick_wall',
+                    wall_tex='white' if self.no_texture else 'brick_wall',
                     floor_tex='asphalt'
                 )
                 row.append(room)
@@ -163,6 +165,25 @@ class MazeS5A4(Maze):
             n_apples=4,
             obs_width=64,
             obs_height=64,
+        )
+
+class MazeS5A4W(Maze):
+    def __init__(self, size=5, max_steps=2000):
+        params = DEFAULT_PARAMS.no_random()
+        params.set('forward_step', 1)
+        params.set('turn_step', 25)
+        super().__init__(
+            num_rows=size, 
+            num_cols=size, 
+            params=params, 
+            max_episode_steps=max_steps,
+            room_size=3,
+            gap_size=3,
+            no_goal=True,
+            n_apples=4,
+            obs_width=64,
+            obs_height=64,
+            no_texture=True,
         )
 
 
