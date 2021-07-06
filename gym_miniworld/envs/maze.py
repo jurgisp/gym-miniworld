@@ -110,7 +110,7 @@ class Maze(MiniWorldEnv):
 
         if self.agent_start_topleft:
             pos = self.room_size/2
-            self.place_agent(dir=0, min_x=pos, max_x=pos, min_z=pos, max_z=pos, add_radius=False)
+            self.place_agent(dir=0, min_x=pos, max_x=pos, min_z=pos, max_z=pos)
         else:
             self.place_agent()
 
