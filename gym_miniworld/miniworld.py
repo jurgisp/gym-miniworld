@@ -884,13 +884,18 @@ class MiniWorldEnv(gym.Env):
             hx = r.max_x if max_x == None else max_x
             lz = r.min_z if min_z == None else min_z
             hz = r.max_z if max_z == None else max_z
-            pos = self.rand.float(
-                low =[lx, 0, lz],
-                high=[hx, 0, hz]
-            )
 
-            # Pick a direction
-            d = dir if dir != None else self.rand.float(-math.pi, math.pi)
+            if isinstance(ent, Agent):
+                # Hack: put the agent in the middle of the room, with x90 orientation
+                # to be compatible with "discrete" grid-size steps
+                pos = [(lx+hx)/2, 0, (lz+hz)/2]
+                d = dir if dir != None else self.rand.int(-2, 2) * math.pi / 2
+            else:
+                pos = self.rand.float(
+                    low =[lx, 0, lz],
+                    high=[hx, 0, hz]
+                )
+                d = dir if dir != None else self.rand.float(-math.pi, math.pi)
 
             # Make sure the position is within the room's outline
             if not r.point_inside(pos):
