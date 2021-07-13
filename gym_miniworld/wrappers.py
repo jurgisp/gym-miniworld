@@ -72,7 +72,7 @@ class MapWrapper(gym.ObservationWrapper):
     def observation(self, obs):
         obs['map'] = self.get_map()
         obs['map_agent'] = self.get_map(with_agent=True)
-        # obs['map_centered'] = self.get_map(centered=True)
+        obs['map_centered'] = self.get_map(centered=True)
         # print(obs['map_agent'].T)
         return obs
 
