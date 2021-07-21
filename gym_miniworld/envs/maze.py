@@ -261,23 +261,23 @@ class MazeS5N(Maze):
             obs_height=64,
         )
 
-class MazeS5GridN(Maze):
-    def __init__(self, size=5, max_steps=500):
-        params = DEFAULT_PARAMS.no_random()
-        params.set('forward_step', 2)
-        params.set('turn_step', 90)
-        super().__init__(
-            num_rows=size, 
-            num_cols=size, 
-            params=params, 
-            max_episode_steps=max_steps,
-            room_size=2,
-            gap_size=2,
-            agent_start_topleft=True,
-            no_goal=True,
-            obs_width=64,
-            obs_height=64,
-            )
+# class MazeS5GridN(Maze):
+#     def __init__(self, size=5, max_steps=500):
+#         params = DEFAULT_PARAMS.no_random()
+#         params.set('forward_step', 2)
+#         params.set('turn_step', 90)
+#         super().__init__(
+#             num_rows=size, 
+#             num_cols=size, 
+#             params=params, 
+#             max_episode_steps=max_steps,
+#             room_size=2,
+#             gap_size=2,
+#             agent_start_topleft=True,
+#             no_goal=True,
+#             obs_width=64,
+#             obs_height=64,
+#             )
 
 class MazeS5GridNS(Maze):  # Very similar to MazeS5GridN
     def __init__(self, size=5, max_steps=500):
