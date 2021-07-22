@@ -5,6 +5,7 @@ from ..miniworld import MiniWorldEnv, Room
 from ..entity import Box, ImageFrame
 from ..params import DEFAULT_PARAMS
 
+
 class Maze(MiniWorldEnv):
     """
     Maze environment in which the agent has to reach a red box
@@ -33,12 +34,12 @@ class Maze(MiniWorldEnv):
         self.no_texture = no_texture
 
         super().__init__(
-            max_episode_steps = max_episode_steps or num_rows * num_cols * 24,
+            max_episode_steps=max_episode_steps or num_rows * num_cols * 24,
             **kwargs
         )
 
         # Allow only the movement actions
-        self.action_space = spaces.Discrete(self.actions.move_forward+1)
+        self.action_space = spaces.Discrete(self.actions.move_forward + 1)
 
     def _gen_world(self):
         rows = []
@@ -81,7 +82,7 @@ class Maze(MiniWorldEnv):
             visited.add(room)
 
             # Reorder the neighbors to visit in a random order
-            neighbors = self.rand.subset([(0,1), (0,-1), (-1,0), (1,0)], 4)
+            neighbors = self.rand.subset([(0, 1), (0, -1), (-1, 0), (1, 0)], 4)
 
             # For each possible neighbor
             for dj, di in neighbors:
@@ -109,7 +110,7 @@ class Maze(MiniWorldEnv):
         visit(0, 0)
 
         if self.agent_start_topleft:
-            pos = self.room_size/2
+            pos = self.room_size / 2
             self.place_agent(dir=0, min_x=pos, max_x=pos, min_z=pos, max_z=pos)
         else:
             self.place_agent()
@@ -140,9 +141,11 @@ class Maze(MiniWorldEnv):
 
         return obs, reward, done, info
 
+
 class MazeS2(Maze):
     def __init__(self):
         super().__init__(num_rows=2, num_cols=2)
+
 
 class MazeS3(Maze):
     def __init__(self):
@@ -155,9 +158,9 @@ class MazeS5A4(Maze):
         params.set('forward_step', 1)
         params.set('turn_step', 25)
         super().__init__(
-            num_rows=size, 
-            num_cols=size, 
-            params=params, 
+            num_rows=size,
+            num_cols=size,
+            params=params,
             max_episode_steps=max_steps,
             room_size=3,
             gap_size=3,
@@ -167,15 +170,16 @@ class MazeS5A4(Maze):
             obs_height=64,
         )
 
+
 class MazeS5A4S(Maze):
     def __init__(self, size=5, max_steps=2000):
         params = DEFAULT_PARAMS.no_random()
         params.set('forward_step', 1)
         params.set('turn_step', 25)
         super().__init__(
-            num_rows=size, 
-            num_cols=size, 
-            params=params, 
+            num_rows=size,
+            num_cols=size,
+            params=params,
             max_episode_steps=max_steps,
             room_size=3,
             gap_size=3,
@@ -186,15 +190,16 @@ class MazeS5A4S(Maze):
             agent_start_topleft=True,  # diff MazeS5A4
         )
 
+
 class MazeS5A4W(Maze):
     def __init__(self, size=5, max_steps=2000):
         params = DEFAULT_PARAMS.no_random()
         params.set('forward_step', 1)
         params.set('turn_step', 25)
         super().__init__(
-            num_rows=size, 
-            num_cols=size, 
-            params=params, 
+            num_rows=size,
+            num_cols=size,
+            params=params,
             max_episode_steps=max_steps,
             room_size=3,
             gap_size=3,
@@ -205,15 +210,16 @@ class MazeS5A4W(Maze):
             no_texture=True,  # diff MazeS5A4
         )
 
+
 class MazeS5GridA4(Maze):
     def __init__(self, size=5, max_steps=500):
         params = DEFAULT_PARAMS.no_random()
         params.set('forward_step', 3)  # diff MazeS5A4
         params.set('turn_step', 90)  # diff MazeS5A4
         super().__init__(
-            num_rows=size, 
-            num_cols=size, 
-            params=params, 
+            num_rows=size,
+            num_cols=size,
+            params=params,
             max_episode_steps=max_steps,
             room_size=3,
             gap_size=3,
@@ -221,7 +227,8 @@ class MazeS5GridA4(Maze):
             n_apples=4,
             obs_width=64,
             obs_height=64,
-            )
+        )
+
 
 class MazeS5GridA4S(Maze):
     def __init__(self, size=5, max_steps=500):
@@ -229,9 +236,9 @@ class MazeS5GridA4S(Maze):
         params.set('forward_step', 3)  # diff MazeS5A4
         params.set('turn_step', 90)  # diff MazeS5A4
         super().__init__(
-            num_rows=size, 
-            num_cols=size, 
-            params=params, 
+            num_rows=size,
+            num_cols=size,
+            params=params,
             max_episode_steps=max_steps,
             room_size=3,
             gap_size=3,
@@ -240,7 +247,7 @@ class MazeS5GridA4S(Maze):
             obs_width=64,
             obs_height=64,
             agent_start_topleft=True,  # diff MazeS5A4
-            )
+        )
 
 
 class MazeS5N(Maze):
@@ -249,45 +256,28 @@ class MazeS5N(Maze):
         params.set('forward_step', 1)
         params.set('turn_step', 25)
         super().__init__(
-            num_rows=size, 
-            num_cols=size, 
-            params=params, 
+            num_rows=size,
+            num_cols=size,
+            params=params,
             max_episode_steps=max_steps,
             room_size=3,
             gap_size=3,
-            # agent_start_topleft=True,
             no_goal=True,
+            # n_apples=4,  # diff MazeS5A4
             obs_width=64,
             obs_height=64,
         )
 
-# class MazeS5GridN(Maze):
-#     def __init__(self, size=5, max_steps=500):
-#         params = DEFAULT_PARAMS.no_random()
-#         params.set('forward_step', 2)
-#         params.set('turn_step', 90)
-#         super().__init__(
-#             num_rows=size, 
-#             num_cols=size, 
-#             params=params, 
-#             max_episode_steps=max_steps,
-#             room_size=2,
-#             gap_size=2,
-#             agent_start_topleft=True,
-#             no_goal=True,
-#             obs_width=64,
-#             obs_height=64,
-#             )
 
-class MazeS5GridNS(Maze):  # Very similar to MazeS5GridN
-    def __init__(self, size=5, max_steps=500):
+class MazeS5NS(Maze):
+    def __init__(self, size=5, max_steps=2000):
         params = DEFAULT_PARAMS.no_random()
-        params.set('forward_step', 3)  # diff MazeS5A4
-        params.set('turn_step', 90)  # diff MazeS5A4
+        params.set('forward_step', 1)
+        params.set('turn_step', 30)  # diff 30 vs 25
         super().__init__(
-            num_rows=size, 
-            num_cols=size, 
-            params=params, 
+            num_rows=size,
+            num_cols=size,
+            params=params,
             max_episode_steps=max_steps,
             room_size=3,
             gap_size=3,
@@ -296,7 +286,28 @@ class MazeS5GridNS(Maze):  # Very similar to MazeS5GridN
             # n_apples=4,  # diff MazeS5A4
             obs_width=64,
             obs_height=64,
-            )
+        )
+
+
+class MazeS5GridNS(Maze):
+    def __init__(self, size=5, max_steps=500):
+        params = DEFAULT_PARAMS.no_random()
+        params.set('forward_step', 3)  # diff MazeS5A4
+        params.set('turn_step', 90)  # diff MazeS5A4
+        super().__init__(
+            num_rows=size,
+            num_cols=size,
+            params=params,
+            max_episode_steps=max_steps,
+            room_size=3,
+            gap_size=3,
+            agent_start_topleft=True,  # diff from MazeS5A4
+            no_goal=True,
+            # n_apples=4,  # diff MazeS5A4
+            obs_width=64,
+            obs_height=64,
+        )
+
 
 class MazeS5GridNR(Maze):
     def __init__(self, size=5, max_steps=500):
@@ -304,9 +315,9 @@ class MazeS5GridNR(Maze):
         params.set('forward_step', 3)  # diff MazeS5A4
         params.set('turn_step', 90)  # diff MazeS5A4
         super().__init__(
-            num_rows=size, 
-            num_cols=size, 
-            params=params, 
+            num_rows=size,
+            num_cols=size,
+            params=params,
             max_episode_steps=max_steps,
             room_size=3,
             gap_size=3,
@@ -315,4 +326,4 @@ class MazeS5GridNR(Maze):
             # n_apples=4,  # diff MazeS5A4
             obs_width=64,
             obs_height=64,
-            )
+        )

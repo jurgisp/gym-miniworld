@@ -142,6 +142,6 @@ class AgentPosWrapper(gym.ObservationWrapper):
         pos = self.env.agent.pos
         dir = self.env.agent.dir
         room_size = self.env.room_size
-        obs['agent_pos'] = np.round(np.array([pos[0], pos[2]]) / room_size, 2)             # (x,y,z) => (x,z)
-        obs['agent_dir'] = np.round(np.array([np.cos(dir), -np.sin(dir)]), 2)  # angle => (dx,dz)
+        obs['agent_pos'] = np.round(np.array([pos[0], pos[2]]) / room_size, 5)             # (x,y,z) => (x,z)
+        obs['agent_dir'] = np.round(np.array([np.cos(dir), -np.sin(dir)]), 5)  # angle => (dx,dz)
         return obs
