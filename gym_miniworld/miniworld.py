@@ -1164,6 +1164,54 @@ class MiniWorldEnv(gym.Env):
             render_agent=True
         )
 
+    def render_top_view_centered(self, frame_buffer=None):
+        """
+        Render a top view of the whole map (from above), 
+        with agent in the middle and rotated to look up.
+        """
+
+        if frame_buffer == None:
+            frame_buffer = self.obs_fb
+
+        # Switch to the default OpenGL context
+        # This is necessary on Linux Nvidia drivers
+        self.shadow_window.switch_to()
+
+        # Bind the frame buffer before rendering into it
+        frame_buffer.bind()
+
+        # Clear the color and depth buffers
+        glClearColor(*self.sky_color, 1.0)
+        glClearDepth(1.0)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        # Scene extents to render
+        width = self.max_x - self.min_x
+        height = self.max_z - self.min_z
+        size = max(width, height)
+
+        # Set the projection matrix
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        glOrtho(-size, size, -size, size, -100, 100)
+
+        # Setup the camera
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+        gluLookAt(
+            # Eye position
+            *(self.agent.pos + np.array([0.0, 10.0, 0.0])),
+            # Target
+            *(self.agent.pos + np.array([0.0, -10.0, 0.0])),
+            # Up vector
+            np.cos(-self.agent.dir), 0.0, np.sin(-self.agent.dir)
+        )
+
+        return self._render_world(
+            frame_buffer,
+            render_agent=True
+        )
+
     def render_obs(self, frame_buffer=None):
         """
         Render an observation from the point of view of the agent

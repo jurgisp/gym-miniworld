@@ -32,6 +32,7 @@ if args.domain_rand:
 if args.map_wrapper:
     env = DictWrapper(env)
     env = MapWrapper(env)
+    env = PixelMapWrapper(env)
     env = AgentPosWrapper(env)
 
 view_mode = 'top' if args.top_view else 'agent'

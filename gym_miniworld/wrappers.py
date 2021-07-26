@@ -145,3 +145,26 @@ class AgentPosWrapper(gym.ObservationWrapper):
         obs['agent_pos'] = np.round(np.array([pos[0], pos[2]]) / room_size, 5)             # (x,y,z) => (x,z)
         obs['agent_dir'] = np.round(np.array([np.cos(dir), -np.sin(dir)]), 5)  # angle => (dx,dz)
         return obs
+
+
+class PixelMapWrapper(gym.ObservationWrapper):
+    """
+    Include agent-centric pixel map as observation
+    """
+
+    def __init__(self, env=None):
+        super().__init__(env)
+        # self.observation_space = ...  # TODO
+
+    def observation(self, obs):
+        # obs['map'] = self.get_map(with_agent=Fals)
+        # obs['map_agent'] = self.get_map()
+        obs['map_centered'] = self.get_map(centered=True)
+        return obs
+
+    def get_map(self, centered=False):
+        env = self.env
+        if centered:
+            return env.render_top_view_centered()
+        else:
+            return env.render_top_view()
