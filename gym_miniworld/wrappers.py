@@ -153,7 +153,9 @@ class PixelMapWrapper(gym.ObservationWrapper):
     """
 
     def __init__(self, env=None):
+        from skimage.transform import resize
         super().__init__(env)
+        self._resize_fn = resize
         # self.observation_space = ...  # TODO
 
     def observation(self, obs):
@@ -165,6 +167,9 @@ class PixelMapWrapper(gym.ObservationWrapper):
     def get_map(self, centered=False):
         env = self.env
         if centered:
-            return env.render_top_view_centered()
+            map = env.render_top_view_centered()
         else:
-            return env.render_top_view()
+            map = env.render_top_view()
+        map = self._resize_fn(map, (64, 64), anti_aliasing=True)
+        return map
+

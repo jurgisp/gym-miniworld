@@ -501,6 +501,9 @@ class MiniWorldEnv(gym.Env):
         # Frame buffer used to render observations
         self.obs_fb = FrameBuffer(obs_width, obs_height, 8)
 
+        # Frame buffer used to render map (top view) observations
+        self.map_fb = FrameBuffer(obs_width * 2, obs_height * 2, 8)
+
         # Frame buffer used for human visualization
         self.vis_fb = FrameBuffer(window_width, window_height, 16)
 
@@ -1097,7 +1100,7 @@ class MiniWorldEnv(gym.Env):
         """
 
         if frame_buffer == None:
-            frame_buffer = self.obs_fb
+            frame_buffer = self.map_fb
 
         # Switch to the default OpenGL context
         # This is necessary on Linux Nvidia drivers
@@ -1171,7 +1174,7 @@ class MiniWorldEnv(gym.Env):
         """
 
         if frame_buffer == None:
-            frame_buffer = self.obs_fb
+            frame_buffer = self.map_fb
 
         # Switch to the default OpenGL context
         # This is necessary on Linux Nvidia drivers
@@ -1393,6 +1396,7 @@ class MiniWorldEnv(gym.Env):
 
         # Render the agent's view
         obs = self.render_obs()
+        # obs = self.render_top_view_centered()
         obs_width = obs.shape[1]
         obs_height = obs.shape[0]
 
