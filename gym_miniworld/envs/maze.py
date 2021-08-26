@@ -21,6 +21,7 @@ class Maze(MiniWorldEnv):
         agent_start_topleft=False,
         no_goal=False,
         n_apples=0,
+        apples_in_corners=False,
         no_texture=False,
         **kwargs
     ):
@@ -31,6 +32,7 @@ class Maze(MiniWorldEnv):
         self.agent_start_topleft = agent_start_topleft
         self.no_goal = no_goal
         self.n_apples = n_apples
+        self.apples_in_corners = apples_in_corners
         self.no_texture = no_texture
 
         super().__init__(
@@ -109,11 +111,14 @@ class Maze(MiniWorldEnv):
         # Generate the maze starting from the top-left corner
         visit(0, 0)
 
-        if self.agent_start_topleft:
-            pos = self.room_size / 2
-            self.place_agent(dir=0, min_x=pos, max_x=pos, min_z=pos, max_z=pos)
-        else:
-            self.place_agent()
+        place_agent_first = not self.apples_in_corners
+        if place_agent_first:
+            # Place agent first
+            if self.agent_start_topleft:
+                pos = self.room_size / 2
+                self.place_agent(dir=0, min_x=pos, max_x=pos, min_z=pos, max_z=pos)
+            else:
+                self.place_agent()
 
         if not self.no_goal:
             self.goal_box = self.place_entity(Box(color='red'))
@@ -121,8 +126,22 @@ class Maze(MiniWorldEnv):
             self.goal_box = None
 
         self.apples = []
-        for _ in range(self.n_apples):
-            self.apples.append(self.place_entity(Box(color='green')))
+        if self.apples_in_corners:
+            assert self.n_apples == 4
+            x1 = self.room_size / 2
+            x2 = (self.num_cols - 1) * (self.room_size + self.gap_size) + self.room_size / 2
+            z1 = self.room_size / 2
+            z2 = (self.num_rows - 1) * (self.room_size + self.gap_size) + self.room_size / 2
+            self.apples.append(self.place_entity(Box(color='green'), min_x=x1, max_x=x1, min_z=z1, max_z=z1))
+            self.apples.append(self.place_entity(Box(color='green'), min_x=x2, max_x=x2, min_z=z1, max_z=z1))
+            self.apples.append(self.place_entity(Box(color='green'), min_x=x1, max_x=x1, min_z=z2, max_z=z2))
+            self.apples.append(self.place_entity(Box(color='green'), min_x=x2, max_x=x2, min_z=z2, max_z=z2))
+        else:
+            for _ in range(self.n_apples):
+                self.apples.append(self.place_entity(Box(color='green')))
+
+        if not place_agent_first:
+            self.place_agent()
 
     def step(self, action):
         obs, reward, done, info = super().step(action)
@@ -166,6 +185,26 @@ class MazeS5A4(Maze):
             gap_size=3,
             no_goal=True,
             n_apples=4,
+            obs_width=64,
+            obs_height=64,
+        )
+
+
+class MazeS7A4C(Maze):
+    def __init__(self, size=7, max_steps=2000):
+        params = DEFAULT_PARAMS.no_random()
+        params.set('forward_step', 1)
+        params.set('turn_step', 25)
+        super().__init__(
+            num_rows=size,
+            num_cols=size,
+            params=params,
+            max_episode_steps=max_steps,
+            room_size=3,
+            gap_size=3,
+            no_goal=True,
+            n_apples=4,
+            apples_in_corners=True,  # diff from MazeS5A4
             obs_width=64,
             obs_height=64,
         )
