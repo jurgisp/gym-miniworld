@@ -60,28 +60,70 @@ class DictWrapper(gym.ObservationWrapper):
         return {'image': obs_img}
 
 
-class MapWrapper(gym.ObservationWrapper):
+class MapWrapper(gym.Wrapper):
     """
     Include top-down map as observation
     """
 
     def __init__(self, env=None):
         super().__init__(env)
-        # self.observation_space = ...  # TODO
+        self._reset_map_seen()
+        # self.observation_space = ...
 
-    def observation(self, obs):
-        obs['map'] = self.get_map()
-        obs['map_agent'] = self.get_map(with_agent=True)
-        obs['map_centered'] = self.get_map(centered=True)
-        # print(obs['map_agent'].T)
-        return obs
-
-    def get_map(self, with_agent=False, centered=False):
+    @property
+    def map_size(self):
         env = self.env
-        assert env.gap_size == env.room_size
         s = env.room_size
+        assert env.gap_size == env.room_size
         assert env.max_x - env.min_x == env.max_z - env.min_z
         n = round((env.max_x - env.min_x) / s)
+        return n
+
+    @property
+    def agent_pos(self):
+        env = self.env
+        s = env.room_size
+        agent_ix = int(np.floor((env.agent.pos[0] - env.min_x) / s))
+        agent_iz = int(np.floor((env.agent.pos[2] - env.min_x) / s))
+        agent_dir = round(env.agent.dir / (np.pi / 2)) % 4  # counter-clockwise
+        return agent_ix, agent_iz, agent_dir
+
+    def _reset_map_seen(self):
+        n = self.map_size
+        self._map_seen = np.zeros((n, n), dtype=bool)
+
+    def _update_map_seen(self):
+        n = self.map_size
+        ix, iz, _ = self.agent_pos
+        self._map_seen[ix, iz] = True
+        # "See" 4 directly adjancent cells
+        for dx, dz in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+            ix1, iz1 = ix + dx, iz + dz
+            if ix1 >= 0 and iz1 >= 0 and ix1 < n and iz1 < n:
+                self._map_seen[ix1, iz1] = True
+
+    def reset(self, **kwargs):
+        observation = self.env.reset(**kwargs)
+        self._reset_map_seen()
+        self._update_map_seen()
+        return self.observation(observation)
+
+    def step(self, action):
+        observation, reward, done, info = self.env.step(action)
+        self._update_map_seen()
+        return self.observation(observation), reward, done, info
+
+    def observation(self, obs):
+        obs['map'] = self.get_map(only_seen=True)
+        obs['map_agent'] = self.get_map(with_agent=True)
+        obs['map_centered'] = self.get_map(centered=True)
+        # print(obs['map'].T)
+        return obs
+
+    def get_map(self, with_agent=False, centered=False, only_seen=False):
+        env = self.env
+        s = self.room_size
+        n = self.map_size
 
         # Use the same categorical values as MiniGrid
         #   GRID_VALUES = np.array([
@@ -114,10 +156,11 @@ class MapWrapper(gym.ObservationWrapper):
             else:
                 map[ix, iz] = 3  # assume goal
 
+        if only_seen:
+            map = map * self._map_seen
+
         if centered:
-            agent_ix = int(np.floor((env.agent.pos[0] - env.min_x) / s))
-            agent_iz = int(np.floor((env.agent.pos[2] - env.min_x) / s))
-            agent_dir = round(env.agent.dir / (np.pi / 2)) % 4  # counter-clockwise
+            agent_ix, agent_iz, agent_dir = self.agent_pos
             # Bigger [2n-1;2n-1] map, where agent is positioned in the center at [n-1;n-1]
             nc = 2 * n - 1
             mapc = np.zeros((nc, nc), dtype=int)
@@ -172,4 +215,3 @@ class PixelMapWrapper(gym.ObservationWrapper):
             map = env.render_top_view()
         map = self._resize_fn(map, (64, 64), anti_aliasing=True)
         return map
-
