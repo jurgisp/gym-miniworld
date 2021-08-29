@@ -366,3 +366,22 @@ class MazeS5GridNR(Maze):
             obs_width=64,
             obs_height=64,
         )
+
+class MazeS7GridA4C(Maze):
+    def __init__(self, size=7, max_steps=500):
+        params = DEFAULT_PARAMS.no_random()
+        params.set('forward_step', 3)  # diff MazeS5A4
+        params.set('turn_step', 90)  # diff MazeS5A4
+        super().__init__(
+            num_rows=size,
+            num_cols=size,
+            params=params,
+            max_episode_steps=max_steps,
+            room_size=3,
+            gap_size=3,
+            no_goal=True,
+            n_apples=4,
+            apples_in_corners=True,  # diff from MazeS5A4
+            obs_width=64,
+            obs_height=64,
+        )
