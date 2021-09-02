@@ -9,6 +9,7 @@ from .pickupobjs import *
 from .tmaze import *
 from .ymaze import *
 from .maze import *
+from .maze2 import *
 from .fourrooms import *
 from .threerooms import *
 from .wallgap import *

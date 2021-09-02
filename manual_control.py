@@ -49,7 +49,7 @@ def step(action):
     if isinstance(obs, dict):
         print({k: v.shape for k, v in obs.items()})
 
-    if reward > 0:
+    if reward != 0:
         print('reward={:.2f}'.format(reward))
 
     if done:
