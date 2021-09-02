@@ -48,6 +48,7 @@ def step(action):
     obs, reward, done, info = env.step(action)
     if isinstance(obs, dict):
         print({k: v.shape for k, v in obs.items()})
+        # print(obs['agent_pos'])
 
     if reward != 0:
         print('reward={:.2f}'.format(reward))
