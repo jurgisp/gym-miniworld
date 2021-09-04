@@ -112,7 +112,7 @@ class MazeT(MazeBase):
         ])
         self._gen_map_world(map)
 
-        self.place_agent(self._map_rooms[0][4], dir=-np.pi / 2)
+        self.place_agent(self._map_rooms[0][4], dir=np.pi)
 
         goal_colors = ['red', 'blue']
         np.random.shuffle(goal_colors)
@@ -146,7 +146,7 @@ class MazeT(MazeBase):
         return obs, reward, done, info
 
 
-class MazeTEasy(MazeT):
+class MazeTEasy2(MazeT):
     def __init__(self):
         super().__init__(
             forward_step_rooms=1.0,
@@ -154,12 +154,12 @@ class MazeTEasy(MazeT):
             max_steps=250)
 
 
-class MazeTHard(MazeT):
+class MazeTHard2(MazeT):
     def __init__(self):
         super().__init__(
-            forward_step_rooms=0.333,
+            forward_step_rooms=0.2,
             turn_step=30,
-            max_steps=750)
+            max_steps=1500)
 
 
 class MazeL(MazeBase):
