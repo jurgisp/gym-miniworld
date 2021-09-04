@@ -122,11 +122,17 @@ class MazeT(MazeBase):
         self.goal_bad = goal_2 if self.goal_good == goal_1 else goal_1
         if self.goal_good.color == 'blue':
             self.indicator = self.place_entity(Box(color='green'), room=self._map_rooms[0][0])
+        self.teaser = self.place_entity(Box(color='yellow'), room=self._map_rooms[8][4])
 
     def step(self, action):
         obs, reward, done, info = super().step(action)
         if done:
             return obs, reward, done, info
+
+        if self.teaser and self.near(self.teaser):
+            self.entities.remove(self.teaser)
+            self.teaser = None
+            reward = 0.1
 
         if self.near(self.goal_good):
             reward = 1.0
@@ -146,7 +152,7 @@ class MazeT(MazeBase):
         return obs, reward, done, info
 
 
-class MazeTEasy2(MazeT):
+class MazeTEasy3(MazeT):
     def __init__(self):
         super().__init__(
             forward_step_rooms=1.0,
@@ -154,7 +160,7 @@ class MazeTEasy2(MazeT):
             max_steps=250)
 
 
-class MazeTHard2(MazeT):
+class MazeTHard3(MazeT):
     def __init__(self):
         super().__init__(
             forward_step_rooms=0.2,
