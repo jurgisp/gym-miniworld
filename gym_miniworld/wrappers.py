@@ -65,11 +65,9 @@ class MapWrapper(gym.Wrapper):
     Include top-down map as observation
     """
 
-    def __init__(self, env=None, map_fog=False):
+    def __init__(self, env=None):
         super().__init__(env)
-        self.map_fog = map_fog
-        if self.map_fog:
-            self._reset_map_seen()
+        self._reset_map_seen()
         # self.observation_space = ...
 
     @property
@@ -106,22 +104,20 @@ class MapWrapper(gym.Wrapper):
 
     def reset(self, **kwargs):
         observation = self.env.reset(**kwargs)
-        if self.map_fog:
-            self._reset_map_seen()
-            self._update_map_seen()
+        self._reset_map_seen()
+        self._update_map_seen()
         return self.observation(observation)
 
     def step(self, action):
         observation, reward, done, info = self.env.step(action)
-        if self.map_fog:
-            self._update_map_seen()
+        self._update_map_seen()
         return self.observation(observation), reward, done, info
 
     def observation(self, obs):
-        obs['map'] = self.get_map(only_seen=self.map_fog)
+        obs['map'] = self.get_map()
         obs['map_agent'] = self.get_map(with_agent=True)
-        # obs['map_centered'] = self.get_map(centered=True)
-        # print(obs['map'].T)
+        obs['map_seen'] = self.get_map(only_seen=True)
+        # print(obs['map_seen'].T)
         return obs
 
     def get_map(self, with_agent=False, centered=False, only_seen=False):
