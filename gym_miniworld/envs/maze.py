@@ -309,7 +309,26 @@ class MazeS5N(Maze):
 
 
 class MazeS5NS(Maze):
-    def __init__(self, size=5, max_steps=2000):
+    def __init__(self, size=5, max_steps=1500):
+        params = DEFAULT_PARAMS.no_random()
+        params.set('forward_step', 1)
+        params.set('turn_step', 30)  # diff 30 vs 25
+        super().__init__(
+            num_rows=size,
+            num_cols=size,
+            params=params,
+            max_episode_steps=max_steps,
+            room_size=3,
+            gap_size=3,
+            agent_start_topleft=True,  # diff from MazeS5A4
+            no_goal=True,
+            # n_apples=4,  # diff MazeS5A4
+            obs_width=64,
+            obs_height=64,
+        )
+
+class MazeS9NS(Maze):
+    def __init__(self, size=9, max_steps=3000):
         params = DEFAULT_PARAMS.no_random()
         params.set('forward_step', 1)
         params.set('turn_step', 30)  # diff 30 vs 25
