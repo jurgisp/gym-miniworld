@@ -2,7 +2,7 @@ import numpy as np
 import math
 from gym import spaces
 from ..miniworld import MiniWorldEnv, Room
-from ..entity import Box, ImageFrame
+from ..entity import Box, ImageFrame, COLORS
 from ..params import DEFAULT_PARAMS
 
 
@@ -53,17 +53,32 @@ class MazeBase(MiniWorldEnv):
 
         # Rooms
 
+        room_texs = [
+            'grass',
+            'water',
+            'lava',
+            'wood',
+            'floor_tiles_bw',
+        ]
+        np.random.shuffle(room_texs)
+
         pad = 0
         for iz in range(self.size):
             for ix in range(self.size):
                 if map[iz, ix]:
+                    if map[iz, ix] > 1:
+                        room_id = map[iz, ix] - 2
+                        wall_tex = room_texs[room_id % len(room_texs)]
+                    else:
+                        wall_tex = 'brick_wall'
                     room = self.add_rect_room(
                         min_x=ix * self.room_size + pad,
                         max_x=(ix + 1) * self.room_size - pad,
                         min_z=iz * self.room_size + pad,
                         max_z=(iz + 1) * self.room_size - pad,
-                        wall_tex='brick_wall',
-                        floor_tex='asphalt'
+                        wall_tex=wall_tex,
+                        floor_tex='metal_grill',
+                        no_ceiling=True
                     )
                     rooms[iz][ix] = room
 
@@ -168,126 +183,137 @@ class MazeTHard3(MazeT):
             max_steps=1500)
 
 
-class MazeL(MazeBase):
+class MazeDMLab(MazeBase):
     """
-    Maze with loops
+    Maze with layout using DMLab maze generator
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def _gen_map(self):
-        map = np.ones((self.size, self.size), int)
-
-        def divide(i1: int, i2: int, j1: int, j2: int, vertical: bool, limit: int):
-            if j2 - j1 > i2 - i1:
-                vertical = True
-            elif j2 - j1 < i2 - i1:
-                vertical = False
-            else:
-                vertical = np.random.choice([False, True])
-
-            if vertical:
-                if j2 - j1 < 3:
-                    return
-
-                # Try put wall
-                ok = False
-                for _ in range(5):
-                    j_wall = np.random.randint(j1 + 1, j2 - 1)
-                    if (i1 > 0 and map[i1 - 1, j_wall] == 1) or (i2 < self.size and map[i2, j_wall] == 1):
-                        # Invalid wall, blocks entrance
-                        continue
-                    ok = True
-                    break
-                if not ok:
-                    return
-
-                map[i1:i2, j_wall] = 0
-
-                n_passages = 2 if (i2 - i1) == self.size else 1
-                while n_passages > 0:
-                    i_passage = np.random.randint(i1, i2)
-                    if map[i_passage, j_wall] == 0:
-                        map[i_passage, j_wall] = 1
-                        n_passages -= 1
-
-                divide(i1, i2, j1, j_wall, not vertical, limit - 1)
-                divide(i1, i2, j_wall + 1, j2, not vertical, limit - 1)
-            else:  # Horizontal
-                if i2 - i1 < 3:
-                    return
-
-                # Try put wall
-                ok = False
-                for _ in range(5):
-                    i_wall = np.random.randint(i1 + 1, i2 - 1)
-                    if (j1 > 0 and map[i_wall, j1 - 1] == 1) or (j2 < self.size and map[i_wall, j2] == 1):
-                        # Invalid wall, blocks entrance
-                        continue
-                    ok = True
-                    break
-                if not ok:
-                    return
-
-                map[i_wall, j1:j2] = 0
-
-                n_passages = 2 if (j2 - j1) == self.size else 1
-                while n_passages > 0:
-                    j_passage = np.random.randint(j1, j2)
-                    if map[i_wall, j_passage] == 0:
-                        map[i_wall, j_passage] = 1
-                        n_passages -= 1
-
-                divide(i1, i_wall, j1, j2, not vertical, limit - 1)
-                divide(i_wall + 1, i2, j1, j2, not vertical, limit - 1)
-
-        divide(0, self.size, 0, self.size, True, 2)
-        return map
+    def __init__(self,
+                 size=9,
+                 max_rooms=4,
+                 room_min_size=3,
+                 room_max_size=5,
+                 room_object_count=1,
+                 **kwargs):
+        self.size = size
+        self.max_rooms = max_rooms
+        self.room_min_size = room_min_size
+        self.room_max_size = room_max_size
+        self.room_object_count = room_object_count
+        super().__init__(size=size, **kwargs)
 
     def _gen_world(self):
-        map = self._gen_map()
+        from dmlab_maze_generator import create_random_maze
+        maze = create_random_maze(width=self.size + 2,
+                                  height=self.size + 2,
+                                  max_rooms=self.max_rooms,
+                                  room_max_size=self.room_max_size,
+                                  room_min_size=self.room_min_size,
+                                  room_object_count=self.room_object_count)
+        # print(maze)
+        maze = [row[1:-1] for row in maze.split('\n')[1:-1]]  # remove outer walls
+        maze = np.array([np.array(list(row)) for row in maze])  # to np.array of chars
+        map = (maze != '*').astype(int)
+
+        # Mark rooms with different numbers
+        #  0 - wall
+        #  1 - corridor
+        #  2, 3, ... - different rooms
+        n_rooms = 0
+        for i in range(map.shape[0] - 1):
+            for j in range(map.shape[1] - 1):
+                if map[i, j] and map[i + 1, j] and map[i, j + 1] and map[i + 1, j + 1]:
+                    # Belongs to a room
+                    if i > 0 and map[i - 1, j] >= 2:
+                        i_room = map[i - 1, j]  # same room
+                    elif j > 0 and map[i, j - 1] >= 2:
+                        i_room = map[i, j - 1]  # same room
+                    else:
+                        i_room = 2 + n_rooms  # new room
+                        n_rooms += 1
+                    map[i, j] = i_room
+                    map[i+1, j] = i_room
+                    map[i, j+1] = i_room
+                    map[i+1, j+1] = i_room
+
         self._gen_map_world(map)
+        self._maze = maze
 
 
-class MazeTriangle(MazeL):
+class ScavengerHunt(MazeDMLab):
     def _gen_world(self):
         super()._gen_world()
 
-        def pick_room(i1, i2, j1, j2):
-            while True:
-                i = np.random.randint(i1, i2)
-                j = np.random.randint(j1, j2)
-                room = self._map_rooms[i][j]
-                if room:
-                    return room
+        self.goal_locations = []
+        for i, j in zip(*np.where(self._maze == 'O')):
+            room = self._map_rooms[i][j]
+            assert room is not None
+            self.goal_locations.append(room)
+        np.random.shuffle(self.goal_locations)
 
-        self.goal_locations = [
-            pick_room(0, 9, 3, 6),
-            pick_room(0, 9, 0, 3),
-            pick_room(0, 9, 6, 9),
-        ]
+        self.goals = []
+        for room, color in zip(self.goal_locations, COLORS.keys()):
+            goal = self.place_entity(Box(color=color), room=room)
+            self.goals.append(goal)
 
-        self.place_agent(room=self.goal_locations[0])
-        self.goal_index = 1
-        self.goal = self.place_entity(Box(color='green'), room=self.goal_locations[1])
+        self.place_agent()
+        self.goal = np.random.choice(self.goals)
 
     def step(self, action):
         obs, reward, done, info = super().step(action)
 
         if self.near(self.goal):
             reward = 1.0
-            self.entities.remove(self.goal)
-            self.goal_index = (self.goal_index + 1) % len(self.goal_locations)
-            self.goal = self.place_entity(self.goal, room=self.goal_locations[self.goal_index])
+            self.goal = np.random.choice(list(set(self.goals) - set([self.goal])))
+            obs = self.render_obs()  # re-render with new goal
 
         return obs, reward, done, info
 
+    def render_obs(self, frame_buffer=None):
+        obs = super().render_obs(frame_buffer)
+        B = 2
+        obs[:,:B] = self.goal.color_vec * 255
+        obs[:,-B:] = self.goal.color_vec * 255
+        obs[:B,:] = self.goal.color_vec * 255
+        obs[-B:,:] = self.goal.color_vec * 255
+        return obs
 
-class MazeTriangleN9Easy(MazeTriangle):
+
+class ScavengerHuntSmall(ScavengerHunt):
     def __init__(self):
+        # Maze based on DMLab30-explore_goal_locations_small
+        # {
+        #     mazeHeight = 11,  # with outer walls
+        #     mazeWidth = 11,
+        #     roomCount = 4,
+        #     roomMaxSize = 5,
+        #     roomMinSize = 3,
+        # }
         super().__init__(
-            size=9,
-            forward_step_rooms=1.0,
-            turn_step=90,
-            max_steps=500)
+            size=9,  # without outer walls
+            max_rooms=4,
+            room_min_size=3,
+            room_max_size=5,
+            forward_step_rooms=0.33,
+            turn_step=30,
+            max_steps=1500)
+
+
+class ScavengerHuntLarge(ScavengerHunt):
+    def __init__(self):
+        # Maze based on DMLab30-explore_goal_locations_large
+        # {
+        #     mazeHeight = 17,  # with outer walls
+        #     mazeWidth = 17,
+        #     roomCount = 9,
+        #     roomMaxSize = 3,
+        #     roomMaxSize = 3,
+        # }
+        super().__init__(
+            size=15,  # without outer walls
+            max_rooms=9,
+            room_min_size=3,
+            room_max_size=3,
+            forward_step_rooms=0.33,
+            turn_step=30,
+            max_steps=1500)
