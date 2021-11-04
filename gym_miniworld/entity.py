@@ -32,6 +32,9 @@ class Entity:
         # Height of bounding cylinder
         self.height = 0
 
+        # Whether should intersect or not
+        self.solid = True
+
     def randomize(self, params, rng):
         """
         Set the domain randomization parameters
@@ -109,11 +112,13 @@ class MeshEnt(Entity):
         self,
         mesh_name,
         height,
-        static=True
+        static=True,
+        solid=True
     ):
         super().__init__()
 
         self.static = static
+        self.solid = solid
 
         # Load the mesh
         self.mesh = ObjMesh.get(mesh_name)

@@ -959,6 +959,10 @@ class MiniWorldEnv(gym.Env):
             if ent2 is ent:
                 continue
 
+            # Only intersect with solid entities
+            if not ent2.solid:
+                continue
+
             px, _, pz = ent2.pos
             pos2 = np.array([px, 0, pz])
 
