@@ -2,7 +2,7 @@ import numpy as np
 import math
 from gym import spaces
 from ..miniworld import MiniWorldEnv, Room
-from ..entity import Box, ImageFrame, COLORS
+from ..entity import Box, ImageFrame, MeshEnt, COLORS
 from ..params import DEFAULT_PARAMS
 
 
@@ -193,24 +193,22 @@ class MazeDMLab(MazeBase):
                  max_rooms=4,
                  room_min_size=3,
                  room_max_size=5,
-                 room_object_count=1,
                  **kwargs):
         self.size = size
         self.max_rooms = max_rooms
         self.room_min_size = room_min_size
         self.room_max_size = room_max_size
-        self.room_object_count = room_object_count
         super().__init__(size=size, **kwargs)
 
-    def _gen_world(self):
+    def _gen_world(self, room_object_count=0):
         from dmlab_maze_generator import create_random_maze
         maze = create_random_maze(width=self.size + 2,
                                   height=self.size + 2,
                                   max_rooms=self.max_rooms,
                                   room_max_size=self.room_max_size,
                                   room_min_size=self.room_min_size,
-                                  room_object_count=self.room_object_count)
-        # print(maze)
+                                  room_object_count=room_object_count)
+        print(maze)
         maze = [row[1:-1] for row in maze.split('\n')[1:-1]]  # remove outer walls
         maze = np.array([np.array(list(row)) for row in maze])  # to np.array of chars
         map = (maze != '*').astype(int)
@@ -232,9 +230,9 @@ class MazeDMLab(MazeBase):
                         i_room = 2 + n_rooms  # new room
                         n_rooms += 1
                     map[i, j] = i_room
-                    map[i+1, j] = i_room
-                    map[i, j+1] = i_room
-                    map[i+1, j+1] = i_room
+                    map[i + 1, j] = i_room
+                    map[i, j + 1] = i_room
+                    map[i + 1, j + 1] = i_room
 
         self._gen_map_world(map)
         self._maze = maze
@@ -242,19 +240,46 @@ class MazeDMLab(MazeBase):
 
 class ScavengerHunt(MazeDMLab):
     def _gen_world(self):
-        super()._gen_world()
+        MAX_GOALS_PER_ROOM = 2
+        N_GOALS = 6  # limited by len(COLORS)
+        DECORATIONS = [
+            (3, 'tree_pine', 1.5, 3.0),
+            (3, 'office_chair', 1.0, 2.0),
+            (5, 'duckie', 0.5, 1.0),
+            (5, 'cone', 0.75, 1.5),
+            (5, 'medkit', 0.3, 0.6),
+        ]
 
-        self.goal_locations = []
-        for i, j in zip(*np.where(self._maze == 'O')):
-            room = self._map_rooms[i][j]
-            assert room is not None
-            self.goal_locations.append(room)
-        np.random.shuffle(self.goal_locations)
+        # Generate maze
+
+        super()._gen_world(room_object_count=MAX_GOALS_PER_ROOM)
+        decor_locations = [self._map_rooms[i][j] for i, j in zip(*np.where(self._maze == ' '))]  # potential locations for decorations
+        goal_locations = [self._map_rooms[i][j] for i, j in zip(*np.where(self._maze == 'O'))]  # potential locations for goals
+
+        # Goal objects
 
         self.goals = []
-        for room, color in zip(self.goal_locations, COLORS.keys()):
-            goal = self.place_entity(Box(color=color), room=room)
+        for color in list(COLORS.keys())[:N_GOALS]:
+            room = np.random.choice(goal_locations)
+            goal_locations.remove(room)
+            obj = Box(color=color)
+            obj.solid = False
+            goal = self.place_entity(obj, room=room)
             self.goals.append(goal)
+
+        # Decoration objects
+
+        for n, mesh, min_height, max_height in DECORATIONS:
+            for _ in range(n):
+                room = np.random.choice(decor_locations)
+                decor_locations.remove(room)
+                self.place_entity(
+                    MeshEnt(mesh_name=mesh,
+                            height=min_height + np.random.rand() * (max_height - min_height),
+                            solid=False),
+                    room=room)
+
+        # Agent
 
         self.place_agent()
         self.goal = np.random.choice(self.goals)
@@ -272,10 +297,10 @@ class ScavengerHunt(MazeDMLab):
     def render_obs(self, frame_buffer=None):
         obs = super().render_obs(frame_buffer)
         B = 2
-        obs[:,:B] = self.goal.color_vec * 255
-        obs[:,-B:] = self.goal.color_vec * 255
-        obs[:B,:] = self.goal.color_vec * 255
-        obs[-B:,:] = self.goal.color_vec * 255
+        obs[:, :B] = self.goal.color_vec * 255
+        obs[:, -B:] = self.goal.color_vec * 255
+        obs[:B, :] = self.goal.color_vec * 255
+        obs[-B:, :] = self.goal.color_vec * 255
         return obs
 
 
@@ -316,4 +341,4 @@ class ScavengerHuntLarge(ScavengerHunt):
             room_max_size=3,
             forward_step_rooms=0.33,
             turn_step=30,
-            max_steps=1500)
+            max_steps=3000)

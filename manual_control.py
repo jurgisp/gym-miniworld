@@ -31,7 +31,7 @@ if args.domain_rand:
 
 if args.map_wrapper:
     env = DictWrapper(env)
-    env = MapWrapper(env)
+    # env = MapWrapper(env)
     # env = PixelMapWrapper(env)
     env = AgentPosWrapper(env)
 
