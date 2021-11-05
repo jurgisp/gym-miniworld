@@ -239,15 +239,20 @@ class MazeDMLab(MazeBase):
 
 
 class ScavengerHunt(MazeDMLab):
+    def __init__(self, size_factor=1, **kwargs):
+        self.size_factor = size_factor
+        super().__init__(**kwargs)
+
     def _gen_world(self):
-        MAX_GOALS_PER_ROOM = 2
-        N_GOALS = 6  # limited by len(COLORS)
+        k = self.size_factor
+        MAX_GOALS_PER_ROOM = 1
+        N_GOALS = 3 * k  # limited by len(COLORS)
         DECORATIONS = [
-            (3, 'tree_pine', 1.5, 3.0),
-            (3, 'office_chair', 1.0, 2.0),
-            (5, 'duckie', 0.5, 1.0),
-            (5, 'cone', 0.75, 1.5),
-            (5, 'medkit', 0.3, 0.6),
+            (k, 'tree_pine', 1.5, 3.0),
+            (k, 'office_chair', 1.0, 2.0),
+            (k, 'duckie', 0.5, 1.0),
+            (3 * k, 'cone', 0.5, 1.0),
+            (3 * k, 'medkit', 0.3, 0.6),
         ]
 
         # Generate maze
@@ -315,6 +320,7 @@ class ScavengerHuntSmall(ScavengerHunt):
         #     roomMinSize = 3,
         # }
         super().__init__(
+            size_factor=1,
             size=9,  # without outer walls
             max_rooms=4,
             room_min_size=3,
@@ -335,6 +341,7 @@ class ScavengerHuntLarge(ScavengerHunt):
         #     roomMaxSize = 3,
         # }
         super().__init__(
+            size_factor=2,
             size=15,  # without outer walls
             max_rooms=9,
             room_min_size=3,
