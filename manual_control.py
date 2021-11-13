@@ -31,7 +31,7 @@ if args.domain_rand:
 
 if args.map_wrapper:
     env = DictWrapper(env)
-    # env = MapWrapper(env)
+    env = MapWrapper(env)
     # env = PixelMapWrapper(env)
     env = AgentPosWrapper(env)
 
@@ -47,8 +47,9 @@ def step(action):
 
     obs, reward, done, info = env.step(action)
     if isinstance(obs, dict):
-        print({k: v.shape for k, v in obs.items()})
-        # print(obs['agent_pos'])
+        # print({k: v.shape for k, v in obs.items()})
+        print(obs['agent_pos'], obs['agent_dir'])
+        print(obs['map_agent'].T)
 
     if reward != 0:
         print('reward={:.2f}'.format(reward))

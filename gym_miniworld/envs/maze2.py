@@ -245,7 +245,7 @@ class ScavengerHunt(MazeDMLab):
     def _gen_world(self):
         k = self.size_factor
         MAX_GOALS_PER_ROOM = 1
-        N_GOALS = 3 * k  # limited by len(COLORS)
+        N_GOALS = 6  # limited by len(COLORS)
         DECORATIONS = [
             (k, 'tree_pine', 1.5, 3.0),
             (k, 'office_chair', 1.0, 2.0),
@@ -264,6 +264,8 @@ class ScavengerHunt(MazeDMLab):
 
         self.goals = []
         for color in list(COLORS.keys())[:N_GOALS]:
+            if not goal_locations:
+                break
             room = np.random.choice(goal_locations)
             goal_locations.remove(room)
             obj = Box(color=color)

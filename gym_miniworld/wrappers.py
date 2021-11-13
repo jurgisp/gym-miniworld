@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import gym
+from .entity import Box, COLORS
 
 
 class PyTorchObsWrapper(gym.ObservationWrapper):
@@ -68,23 +69,27 @@ class MapWrapper(gym.Wrapper):
     def __init__(self, env=None):
         super().__init__(env)
         self._reset_map_seen()
+        self._color_to_idx = {k: i for i, k in enumerate(COLORS.keys())}
         # self.observation_space = ...
 
     @property
     def map_size(self):
         env = self.env
-        s = env.room_size
-        assert env.gap_size == env.room_size
-        assert env.max_x - env.min_x == env.max_z - env.min_z
-        n = round((env.max_x - env.min_x) / s)
-        return n
+        if hasattr(self, 'size'):
+            return self.size
+        else:
+            s = env.room_size
+            assert env.gap_size == env.room_size
+            assert env.max_x - env.min_x == env.max_z - env.min_z
+            n = round((env.max_x - env.min_x) / s)
+            return n
 
     @property
     def agent_pos(self):
         env = self.env
         s = env.room_size
         agent_ix = int(np.floor((env.agent.pos[0] - env.min_x) / s))
-        agent_iz = int(np.floor((env.agent.pos[2] - env.min_x) / s))
+        agent_iz = int(np.floor((env.agent.pos[2] - env.min_z) / s))
         agent_dir = round(env.agent.dir / (np.pi / 2)) % 4  # counter-clockwise
         return agent_ix, agent_iz, agent_dir
 
@@ -117,7 +122,7 @@ class MapWrapper(gym.Wrapper):
         obs['map'] = self.get_map()
         obs['map_agent'] = self.get_map(with_agent=True)
         obs['map_seen'] = self.get_map(only_seen=True)
-        # print(obs['map_seen'].T)
+        # print(obs['map_agent'].T)
         return obs
 
     def get_map(self, with_agent=False, centered=False, only_seen=False):
@@ -125,17 +130,29 @@ class MapWrapper(gym.Wrapper):
         s = self.room_size
         n = self.map_size
 
-        # Use the same categorical values as MiniGrid
-        #   GRID_VALUES = np.array([
-        #       [0, 0, 0],  # Invisible
-        #       [1, 0, 0],  # Empty
-        #       [2, 5, 0],  # Wall
-        #       [8, 1, 0],  # Goal
-        #       [10, 0, 0], # agent(dir=right)
-        #       [10, 0, 1], # agent(dir=down)
-        #       [10, 0, 2], # agent(dir=left)
-        #       [10, 0, 3], # agent(dir=up)
-        #       ...
+        # Use the same categorical values as MiniGrid, restricted to ['basic', 'agent', 'box']
+        #
+        # POSSIBLE_OBJECTS = {
+        # 'basic': np.array([
+        #     [0, 0, 0],  # Hidden
+        #     [1, 0, 0],  # Empty
+        #     [2, 5, 0],  # Wall
+        #     [8, 1, 0],  # Goal
+        # ]),
+        # 'agent': np.array([
+        #     [10, 0, 0],  # Agent(direction)
+        #     [10, 0, 1],
+        #     [10, 0, 2],
+        #     [10, 0, 3],
+        # ]),
+        # 'box': np.array([  # Box (color) 
+        #     [7, 0, 0],  # red
+        #     [7, 1, 0],  # green
+        #     [7, 2, 0],  # blue
+        #     [7, 3, 0],  # purple
+        #     [7, 4, 0],  # yellow
+        #     [7, 5, 0],  # cyan/grey
+        # ]),
 
         map = np.zeros((n, n), dtype=int)
         map[:, :] = 2  # wall
@@ -147,14 +164,16 @@ class MapWrapper(gym.Wrapper):
 
         for ent in env.entities:
             ix = int(np.floor((ent.pos[0] - env.min_x) / s))
-            iz = int(np.floor((ent.pos[2] - env.min_x) / s))
+            iz = int(np.floor((ent.pos[2] - env.min_z) / s))
             if ent == env.agent:
                 if with_agent:
                     dir = round(ent.dir / (np.pi / 2)) % 4  # counter-clockwise
                     minigrid_agent_dir = (8 - dir) % 4  # MiniGrid's agent_dir goes in clockwise direction
                     map[ix, iz] = 4 + minigrid_agent_dir
+            elif isinstance(ent, Box):
+                map[ix, iz] = 8 + self._color_to_idx[ent.color]
             else:
-                map[ix, iz] = 3  # assume goal
+                pass  # decoration
 
         if only_seen:
             map = map * self._map_seen
@@ -182,11 +201,14 @@ class AgentPosWrapper(gym.ObservationWrapper):
         # self.observation_space = ...  # TODO
 
     def observation(self, obs):
-        pos = self.env.agent.pos
-        dir = self.env.agent.dir
-        room_size = self.env.room_size
-        obs['agent_pos'] = np.round(np.array([pos[0], pos[2]]) / room_size, 5)             # (x,y,z) => (x,z)
-        obs['agent_dir'] = np.round(np.array([np.cos(dir), -np.sin(dir)]), 5)  # angle => (dx,dz)
+        env = self.env
+        s = env.room_size
+        agent_x = (env.agent.pos[0] - env.min_x) / s
+        agent_z = (env.agent.pos[2] - env.min_z) / s
+        agent_dx = np.cos(env.agent.dir)
+        agent_dz = -np.sin(env.agent.dir)
+        obs['agent_pos'] = np.array([agent_x, agent_z]).round(5)
+        obs['agent_dir'] = np.array([agent_dx, agent_dz]).round(5)
         return obs
 
 
