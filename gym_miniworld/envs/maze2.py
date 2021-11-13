@@ -208,7 +208,6 @@ class MazeDMLab(MazeBase):
                                   room_max_size=self.room_max_size,
                                   room_min_size=self.room_min_size,
                                   room_object_count=room_object_count)
-        print(maze)
         maze = [row[1:-1] for row in maze.split('\n')[1:-1]]  # remove outer walls
         maze = np.array([np.array(list(row)) for row in maze])  # to np.array of chars
         map = (maze != '*').astype(int)
@@ -327,7 +326,7 @@ class ScavengerHuntSmall(ScavengerHunt):
             room_max_size=5,
             forward_step_rooms=0.33,
             turn_step=30,
-            max_steps=1500)
+            max_steps=900)
 
 
 class ScavengerHuntLarge(ScavengerHunt):
@@ -348,4 +347,4 @@ class ScavengerHuntLarge(ScavengerHunt):
             room_max_size=3,
             forward_step_rooms=0.33,
             turn_step=30,
-            max_steps=3000)
+            max_steps=1800)
