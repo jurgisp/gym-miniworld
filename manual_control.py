@@ -15,6 +15,8 @@ import numpy as np
 import gym
 from gym_miniworld.wrappers import *
 
+FPS = 6
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--env-name', default='MiniWorld-Hallway-v0')
 parser.add_argument('--domain-rand', action='store_true', help='enable domain randomization')
@@ -42,14 +44,16 @@ env.reset()
 # Create the display window
 env.render('pyglet', view=view_mode)
 
+
 def step(action):
     print('step {}/{}: {}'.format(env.step_count+1, env.max_episode_steps, env.actions(action).name))
 
     obs, reward, done, info = env.step(action)
     if isinstance(obs, dict):
         # print({k: v.shape for k, v in obs.items()})
-        print(obs['agent_pos'], obs['agent_dir'])
-        print(obs['map_agent'].T)
+        # print(obs['agent_pos'], obs['agent_dir'])
+        # print(obs['map_agent'].T)
+        pass
 
     if reward != 0:
         print('reward={:.2f}'.format(reward))
@@ -59,6 +63,12 @@ def step(action):
         env.reset()
 
     env.render('pyglet', view=view_mode)
+
+def update(*args):
+    if keys[key.UP] or keys[key.W]:
+        step(env.actions.move_forward)
+    elif keys[key.DOWN] or keys[key.S]:
+        step(env.actions.move_back)
 
 @env.unwrapped.window.event
 def on_key_press(symbol, modifiers):
@@ -77,14 +87,14 @@ def on_key_press(symbol, modifiers):
         env.close()
         pyglet.app.exit()
 
-    if symbol == key.UP:
-        step(env.actions.move_forward)
-    elif symbol == key.DOWN:
-        step(env.actions.move_back)
+    # elif symbol == key.UP or symbol == key.W:
+    #     step(env.actions.move_forward)
+    # elif symbol == key.DOWN or symbol == key.S:
+    #     step(env.actions.move_back)
 
-    elif symbol == key.LEFT:
+    elif symbol == key.LEFT or symbol == key.A:
         step(env.actions.turn_left)
-    elif symbol == key.RIGHT:
+    elif symbol == key.RIGHT or symbol == key.D:
         step(env.actions.turn_right)
 
     elif symbol == key.PAGEUP or symbol == key.P:
@@ -107,7 +117,12 @@ def on_draw():
 def on_close():
     pyglet.app.exit()
 
+
 # Enter main event loop
+keys = key.KeyStateHandler()
+env.window.push_handlers(keys)
+pyglet.clock.schedule_interval(update, 1/FPS)
 pyglet.app.run()
+
 
 env.close()
