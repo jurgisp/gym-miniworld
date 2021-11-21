@@ -350,4 +350,4 @@ class ScavengerHuntLarge(ScavengerHunt):
             room_max_size=3,
             forward_step_rooms=0.33,
             turn_step=30,
-            max_steps=1800)
+            max_steps=3000)
