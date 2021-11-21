@@ -250,7 +250,7 @@ class ScavengerHunt(MazeDMLab):
             (k, 'tree_pine', 1.5, 3.0),
             (k, 'office_chair', 1.0, 2.0),
             (k, 'duckie', 0.5, 1.0),
-            (3 * k, 'cone', 0.5, 1.0),
+            # (3 * k, 'cone', 0.5, 1.0),
             (3 * k, 'medkit', 0.3, 0.6),
         ]
 
@@ -285,6 +285,15 @@ class ScavengerHunt(MazeDMLab):
                             solid=False),
                     room=room)
 
+        # Fill crumbs objects, for encouraging exploration
+
+        self.crumbs = []
+        while len(decor_locations) > 0:
+            room = np.random.choice(decor_locations)
+            decor_locations.remove(room)
+            o = self.place_entity(MeshEnt(mesh_name='cone', height=0.5, solid=False, static=False), room=room)
+            self.crumbs.append(o)
+
         # Agent
 
         self.place_agent()
@@ -293,8 +302,18 @@ class ScavengerHunt(MazeDMLab):
     def step(self, action):
         obs, reward, done, info = super().step(action)
 
+        # Crumbs
+
+        for o in list(self.crumbs):
+            if self.near(o):
+                reward += 0.1
+                self.entities.remove(o)
+                self.crumbs.remove(o)
+
+        # Goal
+
         if self.near(self.goal):
-            reward = 1.0
+            reward += 1.0
             self.goal = np.random.choice(list(set(self.goals) - set([self.goal])))
             obs = self.render_obs()  # re-render with new goal
 

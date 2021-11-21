@@ -111,7 +111,7 @@ class LogCsvWrapper(gym.Wrapper):
         return self.env.reset()
 
     def append_csv(self, obs, reward, done, info):
-        if self.rewards_only and reward == 0:
+        if self.rewards_only and reward < 1.0:
             return  # Only log reward steps, for manual inspection 
         
         step = self.step_count
