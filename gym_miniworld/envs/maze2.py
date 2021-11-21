@@ -26,7 +26,7 @@ class MazeBase(MiniWorldEnv):
         params.set('turn_step', turn_step)
         super().__init__(max_steps, params=params, obs_width=64, obs_height=64)
         # Allow only the movement actions
-        self.action_space = spaces.Discrete(self.actions.move_forward + 1)
+        self.action_space = spaces.Discrete(self.actions.move_back + 1)
 
     def _gen_world(self):
         raise NotImplementedError
@@ -298,6 +298,7 @@ class ScavengerHunt(MazeDMLab):
             self.goal = np.random.choice(list(set(self.goals) - set([self.goal])))
             obs = self.render_obs()  # re-render with new goal
 
+        self.reward_sum += reward
         return obs, reward, done, info
 
     def render_obs(self, frame_buffer=None):

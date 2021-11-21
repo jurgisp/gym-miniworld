@@ -112,3 +112,6 @@ venv.bak/
 
 # Local scripts
 scripts/_*.sh
+
+# Logs
+log/

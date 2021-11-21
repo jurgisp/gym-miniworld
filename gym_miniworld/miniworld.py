@@ -540,6 +540,7 @@ class MiniWorldEnv(gym.Env):
 
         # Step count since episode start
         self.step_count = 0
+        self.reward_sum = 0  # just for visualization
 
         # Create the agent
         self.agent = Agent()
@@ -1469,10 +1470,12 @@ class MiniWorldEnv(gym.Env):
         )
 
         # Draw the text label in the window
-        self.text_label.text = "pos: (%.2f, %.2f, %.2f)\nangle: %d\nsteps: %d" % (
+        self.text_label.text = "pos: (%.2f, %.2f, %.2f)\nangle: %d\nsteps: %d / %d\nscore: %d" % (
             *self.agent.pos,
             int(self.agent.dir * 180 / math.pi) % 360,
-            self.step_count
+            self.step_count,
+            self.max_episode_steps,
+            self.reward_sum,
         )
         self.text_label.draw()
 

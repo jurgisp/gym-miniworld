@@ -14,6 +14,7 @@ from pyglet import clock
 import numpy as np
 import gym
 from gym_miniworld.wrappers import *
+from recording import *
 
 FPS = 6
 
@@ -23,6 +24,7 @@ parser.add_argument('--domain-rand', action='store_true', help='enable domain ra
 parser.add_argument('--no-time-limit', action='store_true', help='ignore time step limits')
 parser.add_argument('--top_view', action='store_true', help='show the top view instead of the agent view')
 parser.add_argument('--map_wrapper', action='store_true', help='use map wrapper')
+parser.add_argument('--record', action='store_true', help='record episodes')
 args = parser.parse_args()
 
 env = gym.make(args.env_name)
@@ -34,8 +36,13 @@ if args.domain_rand:
 if args.map_wrapper:
     env = DictWrapper(env)
     env = MapWrapper(env)
-    # env = PixelMapWrapper(env)
     env = AgentPosWrapper(env)
+
+if args.record:
+    env = ActionRewardResetWrapper(env)
+    env = CollectWrapper(env)
+    env = SaveNpzWrapper(env, './log')
+    env = LogCsvWrapper(env, './log/rewards.csv', rewards_only=True)
 
 view_mode = 'top' if args.top_view else 'agent'
 
@@ -46,17 +53,13 @@ env.render('pyglet', view=view_mode)
 
 
 def step(action):
-    print('step {}/{}: {}'.format(env.step_count+1, env.max_episode_steps, env.actions(action).name))
-
     obs, reward, done, info = env.step(action)
-    if isinstance(obs, dict):
-        # print({k: v.shape for k, v in obs.items()})
-        # print(obs['agent_pos'], obs['agent_dir'])
-        # print(obs['map_agent'].T)
-        pass
 
-    if reward != 0:
-        print('reward={:.2f}'.format(reward))
+    # print(f'{env.step_count}/{env.max_episode_steps} action={action} reward={reward:.1f}')
+    
+    # if isinstance(obs, dict):
+    #     print(obs['agent_pos'], obs['agent_dir'])
+    #     print(obs['map_agent'].T)
 
     if done:
         print('done!')
