@@ -347,7 +347,7 @@ class ScavengerHuntSmall(ScavengerHunt):
             room_min_size=3,
             room_max_size=5,
             forward_step_rooms=0.33,
-            turn_step=30,
+            turn_step=15,
             max_steps=900)
 
 

@@ -5,6 +5,7 @@ This script allows you to manually control the simulator
 using the keyboard arrows.
 """
 
+from collections import defaultdict
 import sys
 import argparse
 import pyglet
@@ -67,11 +68,28 @@ def step(action):
 
     env.render('pyglet', view=view_mode)
 
-def update(*args):
-    if keys[key.UP] or keys[key.W]:
+def handle_keys(*args):
+    keys_active = defaultdict(bool)
+    now = time.time()
+
+    for k in keys_pressed:
+        if keys_pressed[k] and keys_cooldown.get(k, 0) < now:
+            keys_active[k] = True
+            keys_cooldown[k] = now + 1 / FPS
+
+    if keys_active[key.LEFT] or keys_active[key.A]:
+        step(env.actions.turn_left)
+    
+    elif keys_active[key.RIGHT] or keys_active[key.D]:
+        step(env.actions.turn_right)
+
+    elif keys_active[key.UP] or keys_active[key.W]:
         step(env.actions.move_forward)
-    elif keys[key.DOWN] or keys[key.S]:
+
+    elif keys_active[key.DOWN] or keys_active[key.S]:
         step(env.actions.move_back)
+    
+
 
 @env.unwrapped.window.event
 def on_key_press(symbol, modifiers):
@@ -94,19 +112,18 @@ def on_key_press(symbol, modifiers):
     #     step(env.actions.move_forward)
     # elif symbol == key.DOWN or symbol == key.S:
     #     step(env.actions.move_back)
-
-    elif symbol == key.LEFT or symbol == key.A:
-        step(env.actions.turn_left)
-    elif symbol == key.RIGHT or symbol == key.D:
-        step(env.actions.turn_right)
+    # elif symbol == key.LEFT or symbol == key.A:
+    #     step(env.actions.turn_left)
+    # elif symbol == key.RIGHT or symbol == key.D:
+    #     step(env.actions.turn_right)
 
     elif symbol == key.PAGEUP or symbol == key.P:
         step(env.actions.pickup)
     elif symbol == key.PAGEDOWN or symbol == key.D:
         step(env.actions.drop)
 
-    elif symbol == key.ENTER:
-        step(env.actions.done)
+    # elif symbol == key.ENTER:
+    #     step(env.actions.done)
 
 @env.unwrapped.window.event
 def on_key_release(symbol, modifiers):
@@ -122,9 +139,10 @@ def on_close():
 
 
 # Enter main event loop
-keys = key.KeyStateHandler()
-env.window.push_handlers(keys)
-pyglet.clock.schedule_interval(update, 1/FPS)
+keys_pressed = key.KeyStateHandler()
+keys_cooldown = {}
+env.window.push_handlers(keys_pressed)
+pyglet.clock.schedule_interval(handle_keys, 1/30)
 pyglet.app.run()
 
 
