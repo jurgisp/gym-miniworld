@@ -347,7 +347,7 @@ class ScavengerHuntSmall(ScavengerHunt):
             room_min_size=3,
             room_max_size=5,
             forward_step_rooms=0.33,
-            turn_step=15,
+            turn_step=90/4,
             max_steps=900)
 
 
@@ -368,5 +368,5 @@ class ScavengerHuntLarge(ScavengerHunt):
             room_min_size=3,
             room_max_size=3,
             forward_step_rooms=0.33,
-            turn_step=30,
-            max_steps=3000)
+            turn_step=90/4,
+            max_steps=2400)

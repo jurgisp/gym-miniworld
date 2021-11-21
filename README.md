@@ -65,6 +65,16 @@ List of publications & submissions using MiniWorld (please open a pull request t
 
 This simulator was created as part of work done at [Mila](https://mila.quebec/).
 
+## Instructions
+
+```bash
+git clone https://github.com/jurgisp/gym-miniworld.git
+cd gym-miniworld
+pip install -e . dmlab-maze-generator
+
+python manual_control.py --env-name MiniWorld-ScavengerHuntLarge-v0 --record
+```
+
 ## Installation
 
 Requirements:
