@@ -43,7 +43,6 @@ if args.record:
     env = ActionRewardResetWrapper(env)
     env = CollectWrapper(env)
     env = SaveNpzWrapper(env, './log')
-    env = LogCsvWrapper(env, './log/rewards.csv', rewards_only=True)
 
 view_mode = 'top' if args.top_view else 'agent'
 

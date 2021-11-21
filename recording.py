@@ -88,38 +88,3 @@ class SaveNpzWrapper(gym.Wrapper):
         reward = data['reward'].sum()
         steps = len(data['reward']) - 1
         return f'{episode_id}-r{reward:.0f}-{steps:04}'
-
-
-class LogCsvWrapper(gym.Wrapper):
-
-    def __init__(self, env, log_path, rewards_only=True):
-        super().__init__(env)
-        self.log_path = Path(log_path)
-        self.log_path.parent.mkdir(parents=True, exist_ok=True)
-        self.rewards_only = rewards_only
-        self.episode_start = 0
-        self.last_reward_step = 0
-
-    def step(self, action):
-        obs, reward, done, info = self.env.step(action)
-        self.append_csv(obs, reward, done, info)
-        return obs, reward, done, info
-
-    def reset(self):
-        self.episode_start = time.time()
-        self.last_reward_step = 0
-        return self.env.reset()
-
-    def append_csv(self, obs, reward, done, info):
-        if self.rewards_only and reward < 1.0:
-            return  # Only log reward steps, for manual inspection 
-        
-        step = self.step_count
-        episode_id = info.get('episode_id')
-        elapsed_time = time.time() - self.episode_start
-        steps_since_reward = step - self.last_reward_step
-        self.last_reward_step = step
-
-        with self.log_path.open('a') as f:
-            f.write(f'{episode_id}\t{step}\t{reward}\t{steps_since_reward}\t{elapsed_time:.0f}\t{self.spec.id}\t{self.max_episode_steps}\n')
-
