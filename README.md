@@ -68,9 +68,11 @@ This simulator was created as part of work done at [Mila](https://mila.quebec/).
 ## Instructions
 
 ```bash
-git clone https://github.com/jurgisp/gym-miniworld.git
+git clone --depth 1 https://github.com/jurgisp/gym-miniworld.git
 cd gym-miniworld
 pip install -e . dmlab-maze-generator
+
+python manual_control.py --env-name MiniWorld-ScavengerHuntSmall-v0
 
 python manual_control.py --env-name MiniWorld-ScavengerHuntLarge-v0 --record
 ```
