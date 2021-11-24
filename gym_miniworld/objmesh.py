@@ -230,7 +230,7 @@ class ObjMesh:
             '': default_mtl
         }
 
-        mtl_path = model_file.split('.')[0] + '.mtl'
+        mtl_path = get_file_path('meshes', tex_name, 'mtl')
 
         if not os.path.exists(mtl_path):
             return materials
