@@ -238,32 +238,39 @@ class MazeDMLab(MazeBase):
 
 
 class ScavengerHunt(MazeDMLab):
-    def __init__(self, size_factor=1, **kwargs):
-        self.size_factor = size_factor
+    MAX_GOALS_PER_ROOM = 1
+
+    def __init__(self,
+                 n_goals,
+                 with_decor=True,
+                 with_crumbs=False, 
+                 **kwargs):
+        assert n_goals <= len(COLORS)
+        self.n_goals = n_goals
+        self.with_decor = with_decor
+        self.with_crumbs = with_crumbs
         super().__init__(**kwargs)
 
     def _gen_world(self):
-        k = self.size_factor
-        MAX_GOALS_PER_ROOM = 1
-        N_GOALS = 6  # limited by len(COLORS)
+        k = self.size * self.size // 80
         DECORATIONS = [
             (k, 'tree_pine', 1.5, 3.0),
             (k, 'office_chair', 1.0, 2.0),
             (k, 'duckie', 0.5, 1.0),
-            # (3 * k, 'cone', 0.5, 1.0),
-            (3 * k, 'medkit', 0.3, 0.6),
+            (k if not self.with_crumbs else 0, 'cone', 0.5, 1.0),  # if self.crumbs, then use cones as crumbs instead
+            (k, 'medkit', 0.4, 0.8),
         ]
 
         # Generate maze
 
-        super()._gen_world(room_object_count=MAX_GOALS_PER_ROOM)
+        super()._gen_world(room_object_count=self.MAX_GOALS_PER_ROOM)
         decor_locations = [self._map_rooms[i][j] for i, j in zip(*np.where(self._maze == ' '))]  # potential locations for decorations
         goal_locations = [self._map_rooms[i][j] for i, j in zip(*np.where(self._maze == 'O'))]  # potential locations for goals
 
         # Goal objects
 
         self.goals = []
-        for color in list(COLORS.keys())[:N_GOALS]:
+        for color in list(COLORS.keys())[:self.n_goals]:
             if not goal_locations:
                 break
             room = np.random.choice(goal_locations)
@@ -275,24 +282,26 @@ class ScavengerHunt(MazeDMLab):
 
         # Decoration objects
 
-        for n, mesh, min_height, max_height in DECORATIONS:
-            for _ in range(n):
-                room = np.random.choice(decor_locations)
-                decor_locations.remove(room)
-                self.place_entity(
-                    MeshEnt(mesh_name=mesh,
-                            height=min_height + np.random.rand() * (max_height - min_height),
-                            solid=False),
-                    room=room)
+        if self.with_decor:
+            for n, mesh, min_height, max_height in DECORATIONS:
+                for _ in range(n):
+                    room = np.random.choice(decor_locations)
+                    decor_locations.remove(room)
+                    self.place_entity(
+                        MeshEnt(mesh_name=mesh,
+                                height=min_height + np.random.rand() * (max_height - min_height),
+                                solid=False),
+                        room=room)
 
         # Fill crumbs objects, for encouraging exploration
 
         self.crumbs = []
-        while len(decor_locations) > 0:
-            room = np.random.choice(decor_locations)
-            decor_locations.remove(room)
-            o = self.place_entity(MeshEnt(mesh_name='cone', height=0.5, solid=False, static=False), room=room)
-            self.crumbs.append(o)
+        if self.with_crumbs:
+            while len(decor_locations) > 0:
+                room = np.random.choice(decor_locations)
+                decor_locations.remove(room)
+                o = self.place_entity(MeshEnt(mesh_name='cone', height=0.5, solid=False, static=False), room=room)
+                self.crumbs.append(o)
 
         # Agent
 
@@ -341,15 +350,53 @@ class ScavengerHuntSmall(ScavengerHunt):
         #     roomMinSize = 3,
         # }
         super().__init__(
-            size_factor=1,
             size=9,  # without outer walls
+            n_goals=3,
             max_rooms=4,
             room_min_size=3,
             room_max_size=5,
             forward_step_rooms=0.33,
-            turn_step=90/4,
+            turn_step=90 / 4,
             max_steps=900)
 
+
+class ScavengerHuntMedium(ScavengerHunt):
+    def __init__(self):
+        super().__init__(
+            size=11,
+            n_goals=4,
+            max_rooms=6,
+            room_min_size=3,
+            room_max_size=5,
+            forward_step_rooms=0.33,
+            turn_step=90 / 4,
+            max_steps=1800)
+
+
+class ScavengerHuntMediumNodec(ScavengerHunt):
+    def __init__(self):
+        super().__init__(
+            with_decor=False, # Nodec
+            size=11,
+            n_goals=4,
+            max_rooms=6,
+            room_min_size=3,
+            room_max_size=5,
+            forward_step_rooms=0.33,
+            turn_step=90 / 4,
+            max_steps=1800)
+
+class ScavengerHuntLargish(ScavengerHunt):
+    def __init__(self):
+        super().__init__(
+            size=13,
+            n_goals=5,
+            max_rooms=6,
+            room_min_size=3,
+            room_max_size=5,
+            forward_step_rooms=0.33,
+            turn_step=90 / 4,
+            max_steps=2400)
 
 class ScavengerHuntLarge(ScavengerHunt):
     def __init__(self):
@@ -362,11 +409,11 @@ class ScavengerHuntLarge(ScavengerHunt):
         #     roomMaxSize = 3,
         # }
         super().__init__(
-            size_factor=2,
             size=15,  # without outer walls
+            n_goals=6,
             max_rooms=9,
             room_min_size=3,
             room_max_size=3,
             forward_step_rooms=0.33,
-            turn_step=90/4,
+            turn_step=90 / 4,
             max_steps=3000)
