@@ -53,6 +53,9 @@ env.render('pyglet', view=view_mode)
 
 
 def step(action):
+    if action >= env.action_space.n:
+        return
+
     obs, reward, done, info = env.step(action)
 
     # print(f'{env.step_count}/{env.max_episode_steps} action={action} reward={reward:.1f}')

@@ -26,7 +26,7 @@ class MazeBase(MiniWorldEnv):
         params.set('turn_step', turn_step)
         super().__init__(max_steps, params=params, obs_width=64, obs_height=64)
         # Allow only the movement actions
-        self.action_space = spaces.Discrete(self.actions.move_back + 1)
+        self.action_space = spaces.Discrete(self.actions.move_forward + 1)
 
     def _gen_world(self):
         raise NotImplementedError
