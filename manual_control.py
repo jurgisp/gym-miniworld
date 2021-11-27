@@ -38,6 +38,7 @@ if args.map_wrapper or args.record:
     env = DictWrapper(env)
     env = MapWrapper(env)
     env = AgentPosWrapper(env)
+    env = GoalPosWrapper(env)
 
 if args.record:
     env = ActionRewardResetWrapper(env)

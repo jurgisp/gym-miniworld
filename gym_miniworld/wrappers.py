@@ -145,7 +145,7 @@ class MapWrapper(gym.Wrapper):
         #     [10, 0, 2],
         #     [10, 0, 3],
         # ]),
-        # 'box': np.array([  # Box (color) 
+        # 'box': np.array([  # Box (color)
         #     [7, 0, 0],  # red
         #     [7, 1, 0],  # green
         #     [7, 2, 0],  # blue
@@ -209,6 +209,38 @@ class AgentPosWrapper(gym.ObservationWrapper):
         agent_dz = -np.sin(env.agent.dir)
         obs['agent_pos'] = np.array([agent_x, agent_z]).round(5)
         obs['agent_dir'] = np.array([agent_dx, agent_dz]).round(5)
+        return obs
+
+
+class GoalPosWrapper(gym.ObservationWrapper):
+    """
+    Include agent-relative position of goal objects.
+    """
+
+    def __init__(self, env=None):
+        super().__init__(env)
+        # self.observation_space = ...  # TODO
+
+    def observation(self, obs):
+        max_goals = 6
+        env = self.unwrapped
+        s = env.room_size
+        assert hasattr(env, 'goals'), "Missing env.goals - not a ScavengerHunt env?"
+        assert hasattr(env, 'goal'), "Missing env.goal - not a ScavengerHunt env?"
+        concat_goals = [env.goal] + env.goals[:max_goals]  # Prepend target goal in first position
+
+        obs_goals = np.zeros(2 * (max_goals + 1))
+        for i, goal in enumerate(concat_goals):
+            dx = (goal.pos[0] - env.agent.pos[0]) / s
+            dz = (goal.pos[2] - env.agent.pos[2]) / s
+            a = env.agent.dir
+            front = dx * np.cos(a) - dz * np.sin(a)  # how far in front
+            right = dz * np.cos(a) + dx * np.sin(a)  # how far to the right (negative = to the left)
+            obs_goals[2 * i] = front
+            obs_goals[2 * i + 1] = right
+
+        obs['goal_direction'] = obs_goals[:2]  # Current target goal
+        obs['goals_direction'] = obs_goals[2:]  # All goals
         return obs
 
 
