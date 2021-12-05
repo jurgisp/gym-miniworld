@@ -60,10 +60,9 @@ def step(action):
     obs, reward, done, info = env.step(action)
 
     # print(f'{env.step_count}/{env.max_episode_steps} action={action} reward={reward:.1f}')
-    
-    # if isinstance(obs, dict):
-    #     print(obs['agent_pos'], obs['agent_dir'])
-    #     print(obs['map_agent'].T)
+    print({k: v.shape for k, v in obs.items()})
+    # print(obs['agent_pos'], obs['agent_dir'])
+    # print(obs['map_agent'].T)
 
     if done:
         print('done!')

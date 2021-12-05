@@ -357,7 +357,7 @@ class ScavengerHuntSmall(ScavengerHunt):
             room_max_size=5,
             forward_step_rooms=0.33,
             turn_step=90 / 4,
-            max_steps=900)
+            max_steps=1000)
 
 
 class ScavengerHuntMedium(ScavengerHunt):
@@ -370,7 +370,7 @@ class ScavengerHuntMedium(ScavengerHunt):
             room_max_size=5,
             forward_step_rooms=0.33,
             turn_step=90 / 4,
-            max_steps=1800)
+            max_steps=2000)
 
 
 class ScavengerHuntMediumNodec(ScavengerHunt):
@@ -384,7 +384,7 @@ class ScavengerHuntMediumNodec(ScavengerHunt):
             room_max_size=5,
             forward_step_rooms=0.33,
             turn_step=90 / 4,
-            max_steps=1800)
+            max_steps=2000)
 
 class ScavengerHuntLargish(ScavengerHunt):
     def __init__(self):
@@ -396,7 +396,7 @@ class ScavengerHuntLargish(ScavengerHunt):
             room_max_size=5,
             forward_step_rooms=0.33,
             turn_step=90 / 4,
-            max_steps=2400)
+            max_steps=3000)
 
 class ScavengerHuntLarge(ScavengerHunt):
     def __init__(self):
