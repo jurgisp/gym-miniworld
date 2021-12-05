@@ -339,7 +339,7 @@ class ScavengerHunt(MazeDMLab):
         return obs
 
 
-class ScavengerHuntSmall(ScavengerHunt):
+class ScavengerHuntTiny(ScavengerHunt):
     def __init__(self):
         # Maze based on DMLab30-explore_goal_locations_small
         # {
@@ -360,7 +360,7 @@ class ScavengerHuntSmall(ScavengerHunt):
             max_steps=1000)
 
 
-class ScavengerHuntMedium(ScavengerHunt):
+class ScavengerHuntSmall(ScavengerHunt):
     def __init__(self):
         super().__init__(
             size=11,
@@ -373,7 +373,7 @@ class ScavengerHuntMedium(ScavengerHunt):
             max_steps=2000)
 
 
-class ScavengerHuntMediumNodec(ScavengerHunt):
+class ScavengerHuntSmallNodec(ScavengerHunt):
     def __init__(self):
         super().__init__(
             with_decor=False, # Nodec
@@ -386,7 +386,7 @@ class ScavengerHuntMediumNodec(ScavengerHunt):
             turn_step=90 / 4,
             max_steps=2000)
 
-class ScavengerHuntLargish(ScavengerHunt):
+class ScavengerHuntMedium(ScavengerHunt):
     def __init__(self):
         super().__init__(
             size=13,
