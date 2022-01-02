@@ -214,7 +214,7 @@ class AgentPosWrapper(gym.ObservationWrapper):
 
 class GoalPosWrapper(gym.ObservationWrapper):
     """
-    Include agent-relative position of goal objects.
+    Include agent-relative position of goal objects
     """
 
     def __init__(self, env=None):
@@ -241,6 +241,64 @@ class GoalPosWrapper(gym.ObservationWrapper):
 
         obs['goal_direction'] = obs_goals[:2]  # Current target goal
         obs['goals_direction'] = obs_goals[2:]  # All goals
+        return obs
+
+
+class GoalVisibleWrapper(gym.ObservationWrapper):
+    """
+    Caclulate if goals are in line-of-sight.
+    """
+
+    def __init__(self, env=None):
+        super().__init__(env)
+        # self.observation_space = ...  # TODO
+
+    def observation(self, obs):
+        env = self.unwrapped
+        s = env.room_size
+        assert hasattr(env, 'goals'), "Missing env.goals - not a ScavengerHunt env?"
+        assert 'map' in obs, "Missing obs['map'] - need MapWrapper"
+        assert 'goals_direction' in obs, "Missing obs['goals_direction'] - need GoalPosWrapper"
+
+        agent_coord = np.array([env.agent.pos[0] - env.min_x,
+                                env.agent.pos[2] - env.min_z]) / s
+        goals_coord = np.array([[g.pos[0] - env.min_x,
+                                 g.pos[2] - env.min_z]
+                                for g in env.goals]) / s
+        map = obs['map']
+        assert map[tuple(goals_coord[0].astype(int))] == 8, "Inconsistent obs['map'] with env.goals"
+
+        # Do a primitive ray-tracing, interpolating 100 points between agent and the goal positions
+
+        N = 100
+        # rays: (goals, 100 points between agent and goal, xy coords)
+        rays = np.repeat((goals_coord - agent_coord)[:, np.newaxis, :], N, axis=1)
+        rays *= np.arange(0.0, 1.0 + 1e-6, 1 / (N - 1))[:, np.newaxis]
+        rays += agent_coord
+        assert np.isclose(rays[0][0], agent_coord).all() and np.isclose(rays[0][-1], goals_coord[0]).all()
+        assert np.isclose(rays[1][0], agent_coord).all() and np.isclose(rays[1][-1], goals_coord[1]).all()
+
+        rays = rays.astype(int)  # convert to grid map coordinates
+        map_lookup = map[rays[:, :, 0], rays[:, :, 1]]  # lookup map vales along rays
+        assert np.all(map_lookup[:, -1] >= 8), "All rays should terminate at goals"
+
+        # just check for wall occlusion, assume decorations are see-through
+        WALL = 2
+        intersects_walls = np.max(map_lookup == WALL, axis=1)
+
+        # check that in field-of-view angle
+        FOV_ANGLE = 30
+        goals_direction = obs['goals_direction'].reshape(-1, 2)[:len(intersects_walls)]
+        goals_angle = np.arctan2(goals_direction[:, 1], goals_direction[:, 0])
+        in_fov = np.abs(goals_angle) < np.deg2rad(FOV_ANGLE)
+
+        visible = (~intersects_walls) & in_fov
+
+        # expand to length consistent with goals_direction, which includes non-existing goals
+        obs_visible = np.zeros(len(obs['goals_direction']) // 2, bool)
+        obs_visible[:len(visible)] = visible
+        obs['goals_visible'] = obs_visible
+        # print('Visible:', np.array(list(COLORS.keys()))[np.where(visible)[0]].tolist())
         return obs
 
 

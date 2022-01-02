@@ -39,6 +39,7 @@ if args.map_wrapper or args.record:
     env = MapWrapper(env)
     env = AgentPosWrapper(env)
     env = GoalPosWrapper(env)
+    env = GoalVisibleWrapper(env)
 
 if args.record:
     env = ActionRewardResetWrapper(env)
@@ -47,7 +48,8 @@ if args.record:
 
 view_mode = 'top' if args.top_view else 'agent'
 
-env.reset()
+obs = env.reset()
+print({k: v.shape for k, v in obs.items()})
 
 # Create the display window
 env.render('pyglet', view=view_mode)
@@ -60,7 +62,6 @@ def step(action):
     obs, reward, done, info = env.step(action)
 
     # print(f'{env.step_count}/{env.max_episode_steps} action={action} reward={reward:.1f}')
-    print({k: v.shape for k, v in obs.items()})
     # print(obs['agent_pos'], obs['agent_dir'])
     # print(obs['map_agent'].T)
 
