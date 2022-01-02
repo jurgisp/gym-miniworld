@@ -40,6 +40,7 @@ if args.map_wrapper or args.record:
     env = AgentPosWrapper(env)
     env = GoalPosWrapper(env)
     env = GoalVisibleWrapper(env)
+    env = GoalVisAgeWrapper(env)
 
 if args.record:
     env = ActionRewardResetWrapper(env)
@@ -64,6 +65,7 @@ def step(action):
     # print(f'{env.step_count}/{env.max_episode_steps} action={action} reward={reward:.1f}')
     # print(obs['agent_pos'], obs['agent_dir'])
     # print(obs['map_agent'].T)
+    # print(obs['goals_visage'])
 
     if done:
         print('done!')
@@ -103,7 +105,8 @@ def on_key_press(symbol, modifiers):
 
     if symbol == key.BACKSPACE or symbol == key.SLASH:
         print('RESET')
-        env.reset()
+        obs = env.reset()
+        # print(obs['goals_visage'])
         env.render('pyglet', view=view_mode)
         return
 

@@ -302,6 +302,33 @@ class GoalVisibleWrapper(gym.ObservationWrapper):
         return obs
 
 
+class GoalVisAgeWrapper(gym.Wrapper):
+    """
+    Calculates how long ago the goals where visible.
+    """
+
+    def __init__(self, env=None):
+        super().__init__(env)
+        # self.observation_space = ...  # TODO
+        self._visage = None
+        self._maxval = 100_000
+
+    def reset(self, **kwargs):
+        obs = self.env.reset(**kwargs)
+        assert 'goals_visible' in obs, "Missing obs['goals_visible'] - need GoalVisibleWrapper"
+        self._visage = np.full(obs['goals_visible'].shape, self._maxval, np.int32)
+        self._visage = self._visage * ~obs['goals_visible']
+        obs['goals_visage'] = self._visage.copy()
+        return obs
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        self._visage = np.clip(self._visage + 1, 0, self._maxval)
+        self._visage = self._visage * ~obs['goals_visible']
+        obs['goals_visage'] = self._visage.copy()
+        return obs, reward, done, info
+
+
 class PixelMapWrapper(gym.ObservationWrapper):
     """
     Include agent-centric pixel map as observation
