@@ -321,25 +321,30 @@ class ScavengerHunt(MazeDMLab):
 
         # Goal
 
-        if self.near(self.goal):
-            reward += 1.0
-            self.goal = np.random.choice(list(set(self.goals) - set([self.goal])))
-            obs = self.render_obs()  # re-render with new goal
+        if not self.near(self.goal):
+            for goal in self.goals:
+                if self.near(goal):
+                    reward += 1.0
+                    if self.goal not in self.entities:
+                        self.entities.append(self.goal)
+                    self.goal = goal
+                    self.entities.remove(self.goal)
+                    obs = self.render_obs()  # re-render with new goal
 
         self.reward_sum += reward
         return obs, reward, done, info
 
     def render_obs(self, frame_buffer=None):
         obs = super().render_obs(frame_buffer)
-        B = 2
-        obs[:, :B] = self.goal.color_vec * 255
-        obs[:, -B:] = self.goal.color_vec * 255
-        obs[:B, :] = self.goal.color_vec * 255
-        obs[-B:, :] = self.goal.color_vec * 255
+        # B = 2
+        # obs[:, :B] = self.goal.color_vec * 255
+        # obs[:, -B:] = self.goal.color_vec * 255
+        # obs[:B, :] = self.goal.color_vec * 255
+        # obs[-B:, :] = self.goal.color_vec * 255
         return obs
 
 
-class ScavengerHuntTiny(ScavengerHunt):
+class ScavengerHuntTinyAny(ScavengerHunt):
     def __init__(self):
         # Maze based on DMLab30-explore_goal_locations_small
         # {
@@ -360,7 +365,7 @@ class ScavengerHuntTiny(ScavengerHunt):
             max_steps=1000)
 
 
-class ScavengerHuntSmall(ScavengerHunt):
+class ScavengerHuntSmallAny(ScavengerHunt):
     def __init__(self):
         super().__init__(
             size=11,
@@ -373,7 +378,7 @@ class ScavengerHuntSmall(ScavengerHunt):
             max_steps=2000)
 
 
-class ScavengerHuntSmallNodec(ScavengerHunt):
+class ScavengerHuntSmallNodecAny(ScavengerHunt):
     def __init__(self):
         super().__init__(
             with_decor=False, # Nodec
@@ -386,7 +391,7 @@ class ScavengerHuntSmallNodec(ScavengerHunt):
             turn_step=90 / 4,
             max_steps=2000)
 
-class ScavengerHuntMedium(ScavengerHunt):
+class ScavengerHuntMediumAny(ScavengerHunt):
     def __init__(self):
         super().__init__(
             size=13,
@@ -398,7 +403,7 @@ class ScavengerHuntMedium(ScavengerHunt):
             turn_step=90 / 4,
             max_steps=3000)
 
-class ScavengerHuntLarge(ScavengerHunt):
+class ScavengerHuntLargeAny(ScavengerHunt):
     def __init__(self):
         # Maze based on DMLab30-explore_goal_locations_large
         # {
@@ -419,7 +424,7 @@ class ScavengerHuntLarge(ScavengerHunt):
             max_steps=4000)
 
 
-class ScavengerHuntTinyCrumbs(ScavengerHunt):
+class ScavengerHuntTinyCrumbsAny(ScavengerHunt):
     def __init__(self):
         super().__init__(
             size=9,  # without outer walls
