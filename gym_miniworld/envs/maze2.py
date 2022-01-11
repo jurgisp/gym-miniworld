@@ -417,3 +417,17 @@ class ScavengerHuntLarge(ScavengerHunt):
             forward_step_rooms=0.33,
             turn_step=90 / 4,
             max_steps=4000)
+
+
+class ScavengerHuntTinyCrumbs(ScavengerHunt):
+    def __init__(self):
+        super().__init__(
+            size=9,  # without outer walls
+            n_goals=3,
+            max_rooms=4,
+            room_min_size=3,
+            room_max_size=5,
+            forward_step_rooms=0.33,
+            turn_step=90 / 4,
+            max_steps=1000,
+            with_crumbs=True)
